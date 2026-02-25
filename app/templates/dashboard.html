@@ -6,6 +6,7 @@
     <title>Financial Analysis Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
     <style>
         * {
             margin: 0;
@@ -478,7 +479,8 @@
                     </div>
                 </div>
                 <div class="chart-wrapper">
-                    <canvas id="stockChart"></canvas>
+                    <canvas id="stockChart" style="display: none;"></canvas>
+                    <div id="tradingViewChart" style="display: none;"></div>
                 </div>
             </div>
         </div>
@@ -519,6 +521,7 @@
 
     <script>
         let currentChart = null;
+        let currentTradingViewChart = null;
         let currentSymbol = null;
         let currentTimeframe = '1d';
         let currentChartType = 'candlestick';
@@ -687,6 +690,11 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadMarketOverview();
             setupSearch();
+            
+            // Load a random stock by default
+            const randomStock = stockDatabase[Math.floor(Math.random() * stockDatabase.length)];
+            document.getElementById('stockSearch').value = randomStock.symbol;
+            loadStockData(randomStock.symbol);
             
             // Update market data every 5 minutes
             setInterval(loadMarketOverview, 300000);
@@ -860,15 +868,29 @@
                 const response = await fetch(`/api/v1/stocks/${symbol}/chart?period=${timeframe}`);
                 const data = await response.json();
 
-                const ctx = document.getElementById('stockChart').getContext('2d');
-                
+                // Clean up previous charts
                 if (currentChart) {
                     currentChart.destroy();
+                    currentChart = null;
+                }
+                
+                if (currentTradingViewChart) {
+                    currentTradingViewChart.remove();
+                    currentTradingViewChart = null;
                 }
 
+                // Show/hide appropriate containers
+                const chartCanvas = document.getElementById('stockChart');
+                const tradingViewContainer = document.getElementById('tradingViewChart');
+                
                 if (currentChartType === 'candlestick') {
-                    createCandlestickChart(ctx, data, symbol);
+                    chartCanvas.style.display = 'none';
+                    tradingViewContainer.style.display = 'block';
+                    createTradingViewChart(data, symbol);
                 } else {
+                    chartCanvas.style.display = 'block';
+                    tradingViewContainer.style.display = 'none';
+                    const ctx = chartCanvas.getContext('2d');
                     createLineChart(ctx, data, symbol);
                 }
 
@@ -877,189 +899,169 @@
             }
         }
 
-        function createCandlestickChart(ctx, data, symbol) {
-            // Create simple candlestick visualization using Chart.js bar charts
-            const chartData = data.data.map(item => ({
-                x: item.timestamp,
-                open: parseFloat(item.open),
-                high: parseFloat(item.high), 
-                low: parseFloat(item.low),
-                close: parseFloat(item.close),
-                volume: parseInt(item.volume)
-            }));
-
-            // Create high-low bars (wicks)
-            const wickData = chartData.map(item => ({
-                x: item.x,
-                y: [item.low, item.high]
-            }));
-
-            // Create body bars (open-close)
-            const bodyData = chartData.map(item => {
-                const isGreen = item.close >= item.open;
-                return {
-                    x: item.x,
-                    y: [Math.min(item.open, item.close), Math.max(item.open, item.close)],
-                    backgroundColor: isGreen ? '#00ff00' : '#ff4444',
-                    borderColor: isGreen ? '#00ff00' : '#ff4444'
-                };
-            });
-
-            const volumeData = chartData.map(item => ({
-                x: item.x,
-                y: item.volume
-            }));
-
-            currentChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    datasets: [{
-                        label: `${symbol} Wicks`,
-                        data: wickData,
-                        backgroundColor: 'rgba(0, 255, 0, 0.3)',
+        function createTradingViewChart(data, symbol) {
+            try {
+                const container = document.getElementById('tradingViewChart');
+                
+                // Clear container
+                container.innerHTML = '';
+                
+                // Create chart with proper configuration
+                currentTradingViewChart = LightweightCharts.createChart(container, {
+                    width: container.clientWidth || 800,
+                    height: 400,
+                    layout: {
+                        background: { type: 'solid', color: '#000000' },
+                        textColor: '#00ff00',
+                        fontFamily: "'Consolas', 'Monaco', 'Courier New', monospace",
+                        fontSize: 12
+                    },
+                    grid: {
+                        vertLines: { 
+                            color: 'rgba(0, 150, 0, 0.2)',
+                            style: 1,
+                            visible: true 
+                        },
+                        horzLines: { 
+                            color: 'rgba(0, 150, 0, 0.2)',
+                            style: 1,
+                            visible: true 
+                        }
+                    },
+                    crosshair: {
+                        mode: LightweightCharts.CrosshairMode.Normal,
+                        vertLine: { 
+                            color: '#00ff00', 
+                            width: 1,
+                            style: 3 
+                        },
+                        horzLine: { 
+                            color: '#00ff00', 
+                            width: 1,
+                            style: 3 
+                        }
+                    },
+                    rightPriceScale: {
                         borderColor: '#00aa00',
-                        borderWidth: 1,
-                        barPercentage: 0.8,
-                        categoryPercentage: 0.9,
-                        yAxisID: 'price'
-                    }, {
-                        label: `${symbol} Bodies`, 
-                        data: bodyData,
-                        backgroundColor: function(ctx) {
-                            return bodyData[ctx.dataIndex]?.backgroundColor || '#00ff00';
-                        },
-                        borderColor: function(ctx) {
-                            return bodyData[ctx.dataIndex]?.borderColor || '#00ff00';
-                        },
-                        borderWidth: 1,
-                        barPercentage: 0.6,
-                        categoryPercentage: 0.9,
-                        yAxisID: 'price'
-                    }, {
-                        label: 'Volume',
-                        data: volumeData,
-                        backgroundColor: 'rgba(0, 100, 0, 0.3)',
-                        borderColor: 'rgba(0, 150, 0, 0.5)',
-                        borderWidth: 1,
-                        yAxisID: 'volume',
-                        barPercentage: 0.8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            type: 'time',
-                            time: {
-                                unit: getTimeUnit(currentTimeframe),
-                                displayFormats: {
-                                    hour: 'HH:mm',
-                                    day: 'MMM dd',
-                                    week: 'MMM dd',
-                                    month: 'MMM yyyy'
-                                }
-                            },
-                            grid: {
-                                color: 'rgba(0, 150, 0, 0.2)',
-                                borderColor: '#004400'
-                            },
-                            ticks: {
-                                color: '#00cc00',
-                                font: {
-                                    family: "'Consolas', 'Monaco', 'Courier New', monospace",
-                                    size: 11
-                                }
-                            }
-                        },
-                        price: {
-                            type: 'linear',
-                            position: 'right',
-                            beginAtZero: false,
-                            grid: {
-                                color: 'rgba(0, 150, 0, 0.2)',
-                                borderColor: '#004400'
-                            },
-                            ticks: {
-                                color: '#00ffaa',
-                                font: {
-                                    family: "'Consolas', 'Monaco', 'Courier New', monospace",
-                                    size: 11
-                                },
-                                callback: function(value) {
-                                    return '$' + value.toFixed(2);
-                                }
-                            }
-                        },
-                        volume: {
-                            type: 'linear',
-                            position: 'left',
-                            beginAtZero: true,
-                            max: function(context) {
-                                const volumes = volumeData.map(d => d.y);
-                                return Math.max(...volumes) * 4;
-                            },
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                color: '#006600',
-                                font: {
-                                    family: "'Consolas', 'Monaco', 'Courier New', monospace",
-                                    size: 10
-                                },
-                                callback: function(value) {
-                                    return (value / 1000000).toFixed(1) + 'M';
-                                }
-                            }
-                        }
+                        textColor: '#00cc00',
+                        entireTextOnly: false
                     },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                            borderColor: '#00ff00',
-                            borderWidth: 1,
-                            titleColor: '#00ff00',
-                            bodyColor: '#00cc00',
-                            titleFont: {
-                                family: "'Consolas', 'Monaco', 'Courier New', monospace"
-                            },
-                            bodyFont: {
-                                family: "'Consolas', 'Monaco', 'Courier New', monospace"
-                            },
-                            callbacks: {
-                                label: function(context) {
-                                    const dataIndex = context.dataIndex;
-                                    const item = chartData[dataIndex];
-                                    if (context.datasetIndex === 1) { // Bodies dataset
-                                        return [
-                                            `${symbol} OHLC:`,
-                                            `Open: $${item.open.toFixed(2)}`,
-                                            `High: $${item.high.toFixed(2)}`,
-                                            `Low: $${item.low.toFixed(2)}`,
-                                            `Close: $${item.close.toFixed(2)}`,
-                                            `Volume: ${item.volume.toLocaleString()}`
-                                        ];
-                                    } else if (context.datasetIndex === 2) { // Volume dataset
-                                        return `Volume: ${context.parsed.y.toLocaleString()}`;
-                                    }
-                                    return '';
-                                }
-                            }
-                        }
+                    timeScale: {
+                        borderColor: '#00aa00',
+                        textColor: '#00cc00',
+                        timeVisible: currentTimeframe === '1d',
+                        secondsVisible: false,
+                        fixLeftEdge: false,
+                        fixRightEdge: false,
+                        lockVisibleTimeRangeOnResize: true
                     },
-                    interaction: {
-                        mode: 'nearest',
-                        axis: 'x',
-                        intersect: false
+                    handleScroll: {
+                        mouseWheel: true,
+                        pressedMouseMove: true,
+                        horzTouchDrag: true,
+                        vertTouchDrag: true
+                    },
+                    handleScale: {
+                        axisPressedMouseMove: true,
+                        mouseWheel: true,
+                        pinch: true
                     }
-                }
-            });
+                });
+
+                // Add candlestick series
+                const candlestickSeries = currentTradingViewChart.addCandlestickSeries({
+                    upColor: '#00ff00',
+                    downColor: '#ff4444', 
+                    borderVisible: false,
+                    wickUpColor: '#00ff00',
+                    wickDownColor: '#ff4444',
+                    borderUpColor: '#00ff00',
+                    borderDownColor: '#ff4444',
+                    wickVisible: true,
+                    priceFormat: {
+                        type: 'price',
+                        precision: 2,
+                        minMove: 0.01
+                    }
+                });
+
+                // Convert and format data correctly
+                const candlestickData = data.data.map(item => {
+                    // Handle timestamp conversion properly
+                    let time;
+                    if (currentTimeframe === '1d') {
+                        // For intraday, convert to UNIX timestamp
+                        time = Math.floor(new Date(item.timestamp).getTime() / 1000);
+                    } else {
+                        // For daily data, use date string format
+                        time = item.timestamp;
+                    }
+                    
+                    return {
+                        time: time,
+                        open: parseFloat(item.open),
+                        high: parseFloat(item.high),
+                        low: parseFloat(item.low),
+                        close: parseFloat(item.close)
+                    };
+                });
+
+                candlestickSeries.setData(candlestickData);
+
+                // Add volume series
+                const volumeSeries = currentTradingViewChart.addHistogramSeries({
+                    color: 'rgba(0, 150, 0, 0.5)',
+                    priceFormat: {
+                        type: 'volume'
+                    },
+                    priceScaleId: 'left',
+                    scaleMargins: {
+                        top: 0.7,
+                        bottom: 0.0
+                    }
+                });
+
+                const volumeData = data.data.map(item => {
+                    let time;
+                    if (currentTimeframe === '1d') {
+                        time = Math.floor(new Date(item.timestamp).getTime() / 1000);
+                    } else {
+                        time = item.timestamp;
+                    }
+                    
+                    const isUp = parseFloat(item.close) >= parseFloat(item.open);
+                    return {
+                        time: time,
+                        value: parseInt(item.volume),
+                        color: isUp ? 'rgba(0, 255, 0, 0.4)' : 'rgba(255, 68, 68, 0.4)'
+                    };
+                });
+
+                volumeSeries.setData(volumeData);
+
+                // Fit content and handle resize
+                currentTradingViewChart.timeScale().fitContent();
+                
+                // Handle window resize
+                const resizeObserver = new ResizeObserver(entries => {
+                    if (currentTradingViewChart) {
+                        currentTradingViewChart.applyOptions({
+                            width: container.clientWidth
+                        });
+                    }
+                });
+                resizeObserver.observe(container);
+
+                console.log('TradingView chart created successfully for', symbol);
+
+            } catch (error) {
+                console.error('Error creating TradingView chart:', error);
+                // Fallback to simple chart display
+                document.getElementById('stockChart').style.display = 'block';
+                document.getElementById('tradingViewChart').style.display = 'none';
+                const ctx = document.getElementById('stockChart').getContext('2d');
+                createLineChart(ctx, data, symbol);
+            }
         }
 
         async function createLineChart(ctx, data, symbol) {
