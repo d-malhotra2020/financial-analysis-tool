@@ -140,7 +140,7 @@
         }
 
         .suggestion-item:hover {
-            background: #002200;
+            background: #edf2f7;
             color: #2d3748;
         }
 
@@ -166,10 +166,10 @@
         .company-sector {
             font-size: 0.8rem;
             color: #2d3748;
-            background: #002200;
+            background: #e2e8f0;
             padding: 2px 8px;
-            border-radius: 3px;
-            border: 1px solid #004400;
+            border-radius: 4px;
+            border: 1px solid #cbd5e0;
         }
 
         .dashboard-grid {
@@ -245,9 +245,9 @@
             display: flex;
             justify-content: space-between;
             padding: 10px;
-            background: #002200;
-            border-radius: 3px;
-            border: 1px solid #004400;
+            background: #f7fafc;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
         }
 
         .detail-label {
@@ -270,25 +270,27 @@
             padding: 8px 16px;
             border: 1px solid #e2e8f0;
             background: #ffffff;
-            color: #3182ce;
-            border-radius: 3px;
+            color: #4a5568;
+            border-radius: 6px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            font-family: inherit;
+            font-size: 14px;
         }
 
         .time-btn.active, .time-btn:hover, .chart-type-btn.active, .chart-type-btn:hover {
-            background: #001100;
-            color: #2d3748;
-            border-color: #2d3748;
-            box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
-            text-shadow: 0 0 3px #00ff00;
+            background: #3182ce;
+            color: #ffffff;
+            border-color: #3182ce;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
         }
 
         .chart-type-btn {
             padding: 10px 20px;
             font-size: 14px;
+            margin: 0 4px;
         }
 
         .chart-wrapper {
@@ -319,10 +321,11 @@
         }
 
         .stat-card {
-            background: #002200;
+            background: #ffffff;
             color: #2d3748;
             padding: 20px;
-            border-radius: 5px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             border: 2px solid #004400;
             text-align: center;
             box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
@@ -382,10 +385,11 @@
         }
 
         .mover-section {
-            background: #002200;
+            background: #ffffff;
             padding: 20px;
-            border-radius: 5px;
-            border: 2px solid #004400;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .mover-title {
@@ -407,7 +411,7 @@
         }
 
         .mover-item:hover {
-            background: #001100;
+            background: #f7fafc;
         }
 
         .mover-item:last-child {
@@ -918,19 +922,19 @@
                     width: container.clientWidth || 800,
                     height: 400,
                     layout: {
-                        background: { type: 'solid', color: '#000000' },
-                        textColor: '#00ff00',
-                        fontFamily: "'Consolas', 'Monaco', 'Courier New', monospace",
+                        background: { type: 'solid', color: '#ffffff' },
+                        textColor: '#374151',
+                        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
                         fontSize: 12
                     },
                     grid: {
                         vertLines: { 
-                            color: 'rgba(0, 150, 0, 0.2)',
+                            color: 'rgba(226, 232, 240, 0.5)',
                             style: 1,
                             visible: true 
                         },
                         horzLines: { 
-                            color: 'rgba(0, 150, 0, 0.2)',
+                            color: 'rgba(226, 232, 240, 0.5)',
                             style: 1,
                             visible: true 
                         }
@@ -949,13 +953,13 @@
                         }
                     },
                     rightPriceScale: {
-                        borderColor: '#00aa00',
-                        textColor: '#00cc00',
+                        borderColor: '#e2e8f0',
+                        textColor: '#718096',
                         entireTextOnly: false
                     },
                     timeScale: {
-                        borderColor: '#00aa00',
-                        textColor: '#00cc00',
+                        borderColor: '#e2e8f0',
+                        textColor: '#718096',
                         timeVisible: currentTimeframe === '1d',
                         secondsVisible: false,
                         fixLeftEdge: false,
@@ -1088,8 +1092,8 @@
                     datasets: [{
                         label: `${symbol} Price`,
                         data: priceData,
-                        borderColor: '#00ffaa',
-                        backgroundColor: 'rgba(0, 255, 170, 0.1)',
+                        borderColor: '#3182ce',
+                        backgroundColor: 'rgba(49, 130, 206, 0.1)',
                         fill: true,
                         tension: 0.3,
                         pointRadius: 0,
@@ -1125,11 +1129,11 @@
                                     }
                                 },
                                 grid: {
-                                    color: 'rgba(0, 150, 0, 0.2)',
-                                    borderColor: '#004400'
+                                    color: 'rgba(226, 232, 240, 0.5)',
+                                    borderColor: '#e2e8f0'
                                 },
                                 ticks: {
-                                    color: '#00cc00',
+                                    color: '#718096',
                                     font: {
                                         family: "'Consolas', 'Monaco', 'Courier New', monospace",
                                         size: 11
@@ -1141,11 +1145,11 @@
                                 position: 'right',
                                 beginAtZero: false,
                                 grid: {
-                                    color: 'rgba(0, 150, 0, 0.2)',
-                                    borderColor: '#004400'
+                                    color: 'rgba(226, 232, 240, 0.5)',
+                                    borderColor: '#e2e8f0'
                                 },
                                 ticks: {
-                                    color: '#00ffaa',
+                                    color: '#718096',
                                     font: {
                                         family: "'Consolas', 'Monaco', 'Courier New', monospace",
                                         size: 11
@@ -1185,11 +1189,11 @@
                             tooltip: {
                                 mode: 'index',
                                 intersect: false,
-                                backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                                borderColor: '#00ff00',
+                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                borderColor: '#e2e8f0',
                                 borderWidth: 1,
-                                titleColor: '#00ff00',
-                                bodyColor: '#00cc00',
+                                titleColor: '#2d3748',
+                                bodyColor: '#4a5568',
                                 titleFont: {
                                     family: "'Consolas', 'Monaco', 'Courier New', monospace"
                                 },
@@ -1229,8 +1233,8 @@
                     datasets: [{
                         label: `${symbol} Price`,
                         data: priceData,
-                        borderColor: '#00ffaa',
-                        backgroundColor: 'rgba(0, 255, 170, 0.1)',
+                        borderColor: '#3182ce',
+                        backgroundColor: 'rgba(49, 130, 206, 0.1)',
                         fill: true,
                         tension: 0.3,
                         pointRadius: 0,
@@ -1266,11 +1270,11 @@
                                 }
                             },
                             grid: {
-                                color: 'rgba(0, 150, 0, 0.2)',
-                                borderColor: '#004400'
+                                color: 'rgba(226, 232, 240, 0.5)',
+                                borderColor: '#e2e8f0'
                             },
                             ticks: {
-                                color: '#00cc00',
+                                color: '#718096',
                                 font: {
                                     family: "'Consolas', 'Monaco', 'Courier New', monospace",
                                     size: 11
@@ -1282,11 +1286,11 @@
                             position: 'right',
                             beginAtZero: false,
                             grid: {
-                                color: 'rgba(0, 150, 0, 0.2)',
-                                borderColor: '#004400'
+                                color: 'rgba(226, 232, 240, 0.5)',
+                                borderColor: '#e2e8f0'
                             },
                             ticks: {
-                                color: '#00ffaa',
+                                color: '#718096',
                                 font: {
                                     family: "'Consolas', 'Monaco', 'Courier New', monospace",
                                     size: 11
