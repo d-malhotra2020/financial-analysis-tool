@@ -6,7 +6,7 @@
     <title>Financial Analysis Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.2.1/dist/chartjs-chart-financial.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -879,30 +879,65 @@
         }
 
         async function createCandlestickChart(ctx, data, symbol) {
-            const candlestickData = data.data.map(item => ({
-                x: new Date(item.timestamp),
-                o: item.open,
-                h: item.high,
-                l: item.low,
-                c: item.close
+            // Create datasets for OHLC visualization using line charts
+            const priceData = data.data.map(item => ({
+                x: item.timestamp,
+                y: item.close
             }));
 
             const volumeData = data.data.map(item => ({
-                x: new Date(item.timestamp),
+                x: item.timestamp,
                 y: item.volume
             }));
 
+            // Create separate datasets for high and low to show full range
+            const highData = data.data.map(item => ({
+                x: item.timestamp,
+                y: item.high
+            }));
+
+            const lowData = data.data.map(item => ({
+                x: item.timestamp,
+                y: item.low
+            }));
+
             currentChart = new Chart(ctx, {
-                type: 'candlestick',
+                type: 'line',
                 data: {
                     datasets: [{
-                        label: `${symbol} Price`,
-                        data: candlestickData,
-                        backgroundColorUp: '#00ff00',
-                        backgroundColorDown: '#ff0044',
-                        borderColorUp: '#00ff00',
-                        borderColorDown: '#ff0044',
-                        borderWidth: 2,
+                        label: `${symbol} High`,
+                        data: highData,
+                        borderColor: '#00ffaa',
+                        backgroundColor: 'transparent',
+                        fill: false,
+                        tension: 0,
+                        pointRadius: 0,
+                        borderWidth: 1,
+                        pointHoverRadius: 4,
+                        yAxisID: 'price'
+                    }, {
+                        label: `${symbol} Low`,
+                        data: lowData,
+                        borderColor: '#00aa00',
+                        backgroundColor: 'rgba(0, 255, 170, 0.1)',
+                        fill: '-1',
+                        tension: 0,
+                        pointRadius: 0,
+                        borderWidth: 1,
+                        pointHoverRadius: 4,
+                        yAxisID: 'price'
+                    }, {
+                        label: `${symbol} Close`,
+                        data: priceData,
+                        borderColor: '#00ff00',
+                        backgroundColor: 'transparent',
+                        fill: false,
+                        tension: 0.2,
+                        pointRadius: 2,
+                        pointBackgroundColor: '#00ff00',
+                        pointBorderColor: '#00ff00',
+                        borderWidth: 3,
+                        pointHoverRadius: 6,
                         yAxisID: 'price'
                     }, {
                         label: 'Volume',
@@ -922,9 +957,9 @@
                             x: {
                                 type: 'time',
                                 time: {
-                                    unit: getTimeUnit(timeframe),
+                                    unit: getTimeUnit(currentTimeframe),
                                     displayFormats: {
-                                        hour: 'MMM dd HH:mm',
+                                        hour: 'HH:mm',
                                         day: 'MMM dd',
                                         week: 'MMM dd',
                                         month: 'MMM yyyy'
@@ -1145,7 +1180,22 @@
                             },
                             callbacks: {
                                 label: function(context) {
-                                    return `${symbol}: $${context.parsed.y.toFixed(2)}`;
+                                    const dataIndex = context.dataIndex;
+                                    const dataPoint = data.data[dataIndex];
+                                    if (context.dataset.label.includes('Close')) {
+                                        return [
+                                            `${symbol} OHLC:`,
+                                            `Open: $${dataPoint.open}`,
+                                            `High: $${dataPoint.high}`, 
+                                            `Low: $${dataPoint.low}`,
+                                            `Close: $${dataPoint.close}`,
+                                            `Volume: ${dataPoint.volume.toLocaleString()}`
+                                        ];
+                                    } else if (context.dataset.label.includes('Volume')) {
+                                        return `Volume: ${context.parsed.y.toLocaleString()}`;
+                                    } else {
+                                        return `${context.dataset.label}: $${context.parsed.y.toFixed(2)}`;
+                                    }
                                 }
                             }
                         }
