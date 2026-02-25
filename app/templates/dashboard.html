@@ -449,7 +449,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📈 Financial Analysis Dashboard</h1>
+            <h1>Financial Analysis Dashboard</h1>
             <p>Comprehensive NYSE, NASDAQ, S&P 500 & DOW data with interactive candlestick charts</p>
         </div>
 
@@ -459,8 +459,8 @@
                     <input type="text" class="search-input" id="stockSearch" placeholder="Search NYSE, NASDAQ, S&P 500, DOW stocks (e.g., AAPL, Tesla, Goldman Sachs)" autocomplete="off">
                     <div class="suggestions" id="suggestions"></div>
                 </div>
-                <button class="search-btn" onclick="searchStock()">🔍 Search</button>
-                <button class="random-btn" onclick="randomStock()">🎲 Random</button>
+                <button class="search-btn" onclick="searchStock()">Search</button>
+                <button class="random-btn" onclick="randomStock()">Random Stock</button>
             </div>
             <div id="searchResults"></div>
         </div>
@@ -469,7 +469,7 @@
             <div class="stock-info">
                 <div id="stockInfoContent">
                     <div style="text-align: center; padding: 40px; color: #006600;">
-                        <h3>🔍 Search for a stock to view details</h3>
+                        <h3>Search for a stock to view details</h3>
                         <p>Search from 150+ NYSE, NASDAQ, S&P 500 & DOW companies</p>
                     </div>
                 </div>
@@ -478,8 +478,8 @@
             <div class="chart-container">
                 <div class="chart-controls">
                     <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                        <button class="chart-type-btn active" onclick="changeChartType('candlestick')">📊 Candlestick</button>
-                        <button class="chart-type-btn" onclick="changeChartType('line')">📈 Line</button>
+                        <button class="chart-type-btn active" onclick="changeChartType('candlestick')">Candlestick</button>
+                        <button class="chart-type-btn" onclick="changeChartType('line')">Line Chart</button>
                     </div>
                     <div style="display: flex; gap: 10px;">
                         <button class="time-btn active" onclick="changeTimeframe('1d')">1D</button>
@@ -497,7 +497,7 @@
         </div>
 
         <div class="market-overview">
-            <h2>📊 Market Overview</h2>
+            <h2>Market Overview</h2>
             <div class="market-stats">
                 <div class="stat-card">
                     <div class="stat-value" id="sp500Value">Loading...</div>
@@ -519,11 +519,11 @@
             
             <div class="top-movers">
                 <div class="mover-section">
-                    <div class="mover-title">🚀 Top Gainers</div>
+                    <div class="mover-title">Top Gainers</div>
                     <div id="topGainers">Loading...</div>
                 </div>
                 <div class="mover-section">
-                    <div class="mover-title">📉 Top Losers</div>
+                    <div class="mover-title">Top Losers</div>
                     <div id="topLosers">Loading...</div>
                 </div>
             </div>
