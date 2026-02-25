@@ -6,6 +6,7 @@
     <title>Financial Analysis Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
     <style>
         * {
             margin: 0;
@@ -258,7 +259,7 @@
             margin-bottom: 20px;
         }
 
-        .time-btn {
+        .time-btn, .chart-type-btn {
             padding: 8px 16px;
             border: 2px solid #00aa00;
             background: #000000;
@@ -270,12 +271,17 @@
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
         }
 
-        .time-btn.active, .time-btn:hover {
+        .time-btn.active, .time-btn:hover, .chart-type-btn.active, .chart-type-btn:hover {
             background: #001100;
             color: #00ff00;
             border-color: #00ff00;
             box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
             text-shadow: 0 0 3px #00ff00;
+        }
+
+        .chart-type-btn {
+            padding: 10px 20px;
+            font-size: 14px;
         }
 
         .chart-wrapper {
@@ -460,11 +466,17 @@
             
             <div class="chart-container">
                 <div class="chart-controls">
-                    <button class="time-btn active" onclick="changeTimeframe('1d')">1D</button>
-                    <button class="time-btn" onclick="changeTimeframe('1w')">1W</button>
-                    <button class="time-btn" onclick="changeTimeframe('1mo')">1M</button>
-                    <button class="time-btn" onclick="changeTimeframe('3mo')">3M</button>
-                    <button class="time-btn" onclick="changeTimeframe('1y')">1Y</button>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <button class="chart-type-btn active" onclick="changeChartType('candlestick')">📊 Candlestick</button>
+                        <button class="chart-type-btn" onclick="changeChartType('line')">📈 Line</button>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="time-btn active" onclick="changeTimeframe('1d')">1D</button>
+                        <button class="time-btn" onclick="changeTimeframe('1w')">1W</button>
+                        <button class="time-btn" onclick="changeTimeframe('1mo')">1M</button>
+                        <button class="time-btn" onclick="changeTimeframe('3mo')">3M</button>
+                        <button class="time-btn" onclick="changeTimeframe('1y')">1Y</button>
+                    </div>
                 </div>
                 <div class="chart-wrapper">
                     <canvas id="stockChart"></canvas>
@@ -510,6 +522,7 @@
         let currentChart = null;
         let currentSymbol = null;
         let currentTimeframe = '1d';
+        let currentChartType = 'candlestick';
         let allStocks = [];
 
         // Available stocks (S&P 500 companies)
@@ -748,47 +761,58 @@
                     currentChart.destroy();
                 }
 
-                const priceData = data.data.map(item => ({
-                    x: new Date(item.timestamp),
-                    y: item.close
-                }));
+                if (currentChartType === 'candlestick') {
+                    await createCandlestickChart(ctx, data, symbol);
+                } else {
+                    await createLineChart(ctx, data, symbol);
+                }
 
-                const volumeData = data.data.map(item => ({
-                    x: new Date(item.timestamp),
-                    y: item.volume
-                }));
+            } catch (error) {
+                console.error('Error loading chart data:', error);
+            }
+        }
 
-                currentChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        datasets: [{
-                            label: `${symbol} Price`,
-                            data: priceData,
-                            borderColor: '#00ffaa',
-                            backgroundColor: 'rgba(0, 255, 170, 0.1)',
-                            fill: true,
-                            tension: 0.3,
-                            pointRadius: 0,
-                            pointHoverRadius: 6,
-                            borderWidth: 3,
-                            pointBorderColor: '#00ffaa',
-                            pointBackgroundColor: '#00ffaa',
-                            yAxisID: 'price'
-                        }, {
-                            label: 'Volume',
-                            type: 'bar',
-                            data: volumeData,
-                            backgroundColor: 'rgba(0, 100, 0, 0.3)',
-                            borderColor: 'rgba(0, 150, 0, 0.5)',
-                            borderWidth: 1,
-                            yAxisID: 'volume',
-                            barPercentage: 0.8
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
+        async function createCandlestickChart(ctx, data, symbol) {
+            const candlestickData = data.data.map(item => ({
+                x: new Date(item.timestamp),
+                o: item.open,
+                h: item.high,
+                l: item.low,
+                c: item.close
+            }));
+
+            const volumeData = data.data.map(item => ({
+                x: new Date(item.timestamp),
+                y: item.volume
+            }));
+
+            currentChart = new Chart(ctx, {
+                type: 'candlestick',
+                data: {
+                    datasets: [{
+                        label: `${symbol} Price`,
+                        data: candlestickData,
+                        backgroundColorUp: '#00ff00',
+                        backgroundColorDown: '#ff0044',
+                        borderColorUp: '#00ff00',
+                        borderColorDown: '#ff0044',
+                        borderWidth: 2,
+                        yAxisID: 'price'
+                    }, {
+                        label: 'Volume',
+                        type: 'bar',
+                        data: volumeData,
+                        backgroundColor: 'rgba(0, 100, 0, 0.3)',
+                        borderColor: 'rgba(0, 150, 0, 0.5)',
+                        borderWidth: 1,
+                        yAxisID: 'volume',
+                        barPercentage: 0.8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
                             x: {
                                 type: 'time',
                                 time: {
@@ -886,10 +910,147 @@
                         }
                     }
                 });
+        }
 
-            } catch (error) {
-                console.error('Error loading chart data:', error);
-            }
+        async function createLineChart(ctx, data, symbol) {
+            const priceData = data.data.map(item => ({
+                x: new Date(item.timestamp),
+                y: item.close
+            }));
+
+            const volumeData = data.data.map(item => ({
+                x: new Date(item.timestamp),
+                y: item.volume
+            }));
+
+            currentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: `${symbol} Price`,
+                        data: priceData,
+                        borderColor: '#00ffaa',
+                        backgroundColor: 'rgba(0, 255, 170, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        borderWidth: 3,
+                        pointBorderColor: '#00ffaa',
+                        pointBackgroundColor: '#00ffaa',
+                        yAxisID: 'price'
+                    }, {
+                        label: 'Volume',
+                        type: 'bar',
+                        data: volumeData,
+                        backgroundColor: 'rgba(0, 100, 0, 0.3)',
+                        borderColor: 'rgba(0, 150, 0, 0.5)',
+                        borderWidth: 1,
+                        yAxisID: 'volume',
+                        barPercentage: 0.8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: getTimeUnit(currentTimeframe),
+                                displayFormats: {
+                                    hour: 'MMM dd HH:mm',
+                                    day: 'MMM dd',
+                                    week: 'MMM dd',
+                                    month: 'MMM yyyy'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 150, 0, 0.2)',
+                                borderColor: '#004400'
+                            },
+                            ticks: {
+                                color: '#00cc00',
+                                font: {
+                                    family: "'Consolas', 'Monaco', 'Courier New', monospace",
+                                    size: 11
+                                }
+                            }
+                        },
+                        price: {
+                            type: 'linear',
+                            position: 'right',
+                            beginAtZero: false,
+                            grid: {
+                                color: 'rgba(0, 150, 0, 0.2)',
+                                borderColor: '#004400'
+                            },
+                            ticks: {
+                                color: '#00ffaa',
+                                font: {
+                                    family: "'Consolas', 'Monaco', 'Courier New', monospace",
+                                    size: 11
+                                },
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            }
+                        },
+                        volume: {
+                            type: 'linear',
+                            position: 'left',
+                            beginAtZero: true,
+                            max: function(context) {
+                                const volumes = context.chart.data.datasets[1].data.map(d => d.y);
+                                return Math.max(...volumes) * 4;
+                            },
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#006600',
+                                font: {
+                                    family: "'Consolas', 'Monaco', 'Courier New', monospace",
+                                    size: 10
+                                },
+                                callback: function(value) {
+                                    return (value / 1000000).toFixed(1) + 'M';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                            borderColor: '#00ff00',
+                            borderWidth: 1,
+                            titleColor: '#00ff00',
+                            bodyColor: '#00cc00',
+                            titleFont: {
+                                family: "'Consolas', 'Monaco', 'Courier New', monospace"
+                            },
+                            bodyFont: {
+                                family: "'Consolas', 'Monaco', 'Courier New', monospace"
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    return `${symbol}: $${context.parsed.y.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
         }
 
         function getTimeUnit(timeframe) {
@@ -912,6 +1073,18 @@
             
             if (currentSymbol) {
                 loadStockChart(currentSymbol, timeframe);
+            }
+        }
+
+        function changeChartType(chartType) {
+            currentChartType = chartType;
+            
+            // Update button states
+            document.querySelectorAll('.chart-type-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (currentSymbol) {
+                loadStockChart(currentSymbol, currentTimeframe);
             }
         }
 
