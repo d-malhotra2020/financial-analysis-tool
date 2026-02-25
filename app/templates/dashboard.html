@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Analysis Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .search-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .search-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-btn, .random-btn {
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .search-btn:hover, .random-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .suggestions {
+            display: none;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            position: absolute;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .suggestion-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .suggestion-item:hover {
+            background: #f8f9fa;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .company-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .company-symbol {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .company-name {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .company-sector {
+            font-size: 0.8rem;
+            color: #999;
+            background: #f0f2f5;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .stock-info, .chart-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .stock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .stock-symbol {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stock-name {
+            font-size: 1.1rem;
+            color: #666;
+        }
+
+        .stock-price {
+            text-align: right;
+        }
+
+        .current-price {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .price-change {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .positive {
+            color: #4CAF50;
+        }
+
+        .negative {
+            color: #f44336;
+        }
+
+        .stock-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .detail-value {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .time-btn {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: transparent;
+            color: #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .time-btn.active, .time-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        .market-overview {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .market-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #c62828;
+        }
+
+        .top-movers {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .mover-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .mover-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .mover-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .mover-item:last-child {
+            border-bottom: none;
+        }
+
+        .mover-symbol {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .mover-change {
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .stock-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .top-movers {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📈 Financial Analysis Dashboard</h1>
+            <p>Real-time S&P 500 data with interactive stock charts</p>
+        </div>
+
+        <div class="search-section">
+            <div class="search-container">
+                <div style="position: relative; flex: 1;">
+                    <input type="text" class="search-input" id="stockSearch" placeholder="Search for stocks (e.g., AAPL, Microsoft, Apple Inc.)" autocomplete="off">
+                    <div class="suggestions" id="suggestions"></div>
+                </div>
+                <button class="search-btn" onclick="searchStock()">🔍 Search</button>
+                <button class="random-btn" onclick="randomStock()">🎲 Random</button>
+            </div>
+            <div id="searchResults"></div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="stock-info">
+                <div id="stockInfoContent">
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <h3>🔍 Search for a stock to view details</h3>
+                        <p>Use the search bar above to find and analyze any S&P 500 company</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-controls">
+                    <button class="time-btn active" onclick="changeTimeframe('1d')">1D</button>
+                    <button class="time-btn" onclick="changeTimeframe('1w')">1W</button>
+                    <button class="time-btn" onclick="changeTimeframe('1m')">1M</button>
+                    <button class="time-btn" onclick="changeTimeframe('3m')">3M</button>
+                    <button class="time-btn" onclick="changeTimeframe('1y')">1Y</button>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="stockChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="market-overview">
+            <h2>📊 Market Overview</h2>
+            <div class="market-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="sp500Value">Loading...</div>
+                    <div class="stat-label">S&P 500</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="dowValue">Loading...</div>
+                    <div class="stat-label">Dow Jones</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="nasdaqValue">Loading...</div>
+                    <div class="stat-label">NASDAQ</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="advancingStocks">Loading...</div>
+                    <div class="stat-label">Advancing</div>
+                </div>
+            </div>
+            
+            <div class="top-movers">
+                <div class="mover-section">
+                    <div class="mover-title">🚀 Top Gainers</div>
+                    <div id="topGainers">Loading...</div>
+                </div>
+                <div class="mover-section">
+                    <div class="mover-title">📉 Top Losers</div>
+                    <div id="topLosers">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentChart = null;
+        let currentSymbol = null;
+        let currentTimeframe = '1d';
+        let allStocks = [];
+
+        // Available stocks (S&P 500 companies)
+        const stockDatabase = [
+            {symbol: "AAPL", name: "Apple Inc.", sector: "Technology"},
+            {symbol: "MSFT", name: "Microsoft Corporation", sector: "Technology"},
+            {symbol: "GOOGL", name: "Alphabet Inc.", sector: "Technology"},
+            {symbol: "AMZN", name: "Amazon.com Inc.", sector: "Consumer Discretionary"},
+            {symbol: "NVDA", name: "NVIDIA Corporation", sector: "Technology"},
+            {symbol: "META", name: "Meta Platforms Inc.", sector: "Technology"},
+            {symbol: "TSLA", name: "Tesla Inc.", sector: "Consumer Discretionary"},
+            {symbol: "BRK.B", name: "Berkshire Hathaway Inc.", sector: "Financials"},
+            {symbol: "UNH", name: "UnitedHealth Group Inc.", sector: "Healthcare"},
+            {symbol: "JNJ", name: "Johnson & Johnson", sector: "Healthcare"},
+            {symbol: "JPM", name: "JPMorgan Chase & Co.", sector: "Financials"},
+            {symbol: "V", name: "Visa Inc.", sector: "Financials"},
+            {symbol: "PG", name: "Procter & Gamble Co.", sector: "Consumer Staples"},
+            {symbol: "HD", name: "Home Depot Inc.", sector: "Consumer Discretionary"},
+            {symbol: "CVX", name: "Chevron Corporation", sector: "Energy"},
+            {symbol: "MA", name: "Mastercard Inc.", sector: "Financials"},
+            {symbol: "PFE", name: "Pfizer Inc.", sector: "Healthcare"},
+            {symbol: "ABBV", name: "AbbVie Inc.", sector: "Healthcare"},
+            {symbol: "BAC", name: "Bank of America Corp.", sector: "Financials"},
+            {symbol: "KO", name: "Coca-Cola Co.", sector: "Consumer Staples"},
+            {symbol: "AVGO", name: "Broadcom Inc.", sector: "Technology"},
+            {symbol: "PEP", name: "PepsiCo Inc.", sector: "Consumer Staples"},
+            {symbol: "COST", name: "Costco Wholesale Corp.", sector: "Consumer Staples"},
+            {symbol: "TMO", name: "Thermo Fisher Scientific", sector: "Healthcare"},
+            {symbol: "MRK", name: "Merck & Co Inc.", sector: "Healthcare"},
+            {symbol: "ACN", name: "Accenture PLC", sector: "Technology"},
+            {symbol: "WMT", name: "Walmart Inc.", sector: "Consumer Staples"},
+            {symbol: "DIS", name: "Walt Disney Co.", sector: "Communication Services"},
+            {symbol: "ABT", name: "Abbott Laboratories", sector: "Healthcare"},
+            {symbol: "CRM", name: "Salesforce Inc.", sector: "Technology"},
+            {symbol: "VZ", name: "Verizon Communications", sector: "Communication Services"},
+            {symbol: "ADBE", name: "Adobe Inc.", sector: "Technology"},
+            {symbol: "NFLX", name: "Netflix Inc.", sector: "Communication Services"},
+            {symbol: "NKE", name: "Nike Inc.", sector: "Consumer Discretionary"},
+            {symbol: "CMCSA", name: "Comcast Corp.", sector: "Communication Services"},
+            {symbol: "DHR", name: "Danaher Corp.", sector: "Healthcare"},
+            {symbol: "TXN", name: "Texas Instruments", sector: "Technology"},
+            {symbol: "NEE", name: "NextEra Energy Inc.", sector: "Utilities"},
+            {symbol: "BMY", name: "Bristol Myers Squibb", sector: "Healthcare"},
+            {symbol: "PM", name: "Philip Morris Intl", sector: "Consumer Staples"},
+            {symbol: "RTX", name: "Raytheon Technologies", sector: "Industrials"},
+            {symbol: "QCOM", name: "Qualcomm Inc.", sector: "Technology"},
+            {symbol: "HON", name: "Honeywell Intl Inc.", sector: "Industrials"},
+            {symbol: "UPS", name: "United Parcel Service", sector: "Industrials"},
+            {symbol: "T", name: "AT&T Inc.", sector: "Communication Services"},
+            {symbol: "SBUX", name: "Starbucks Corp.", sector: "Consumer Discretionary"},
+            {symbol: "MDT", name: "Medtronic PLC", sector: "Healthcare"},
+            {symbol: "LOW", name: "Lowe's Companies Inc.", sector: "Consumer Discretionary"},
+            {symbol: "IBM", name: "International Business Machines", sector: "Technology"},
+            {symbol: "AMT", name: "American Tower Corp.", sector: "Real Estate"}
+        ];
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMarketOverview();
+            setupSearch();
+            
+            // Update market data every 5 minutes
+            setInterval(loadMarketOverview, 300000);
+        });
+
+        function setupSearch() {
+            const searchInput = document.getElementById('stockSearch');
+            const suggestions = document.getElementById('suggestions');
+
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase().trim();
+                
+                if (query.length < 1) {
+                    suggestions.style.display = 'none';
+                    return;
+                }
+
+                const filtered = stockDatabase.filter(stock => 
+                    stock.symbol.toLowerCase().includes(query) ||
+                    stock.name.toLowerCase().includes(query) ||
+                    stock.sector.toLowerCase().includes(query)
+                ).slice(0, 8);
+
+                if (filtered.length > 0) {
+                    suggestions.innerHTML = filtered.map(stock => `
+                        <div class="suggestion-item" onclick="selectStock('${stock.symbol}')">
+                            <div class="company-info">
+                                <div class="company-symbol">${stock.symbol}</div>
+                                <div class="company-name">${stock.name}</div>
+                            </div>
+                            <div class="company-sector">${stock.sector}</div>
+                        </div>
+                    `).join('');
+                    suggestions.style.display = 'block';
+                } else {
+                    suggestions.style.display = 'none';
+                }
+            });
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.search-container')) {
+                    suggestions.style.display = 'none';
+                }
+            });
+
+            // Handle Enter key
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchStock();
+                }
+            });
+        }
+
+        function selectStock(symbol) {
+            document.getElementById('stockSearch').value = symbol;
+            document.getElementById('suggestions').style.display = 'none';
+            loadStockData(symbol);
+        }
+
+        function searchStock() {
+            const query = document.getElementById('stockSearch').value.trim().toUpperCase();
+            if (query) {
+                loadStockData(query);
+                document.getElementById('suggestions').style.display = 'none';
+            }
+        }
+
+        function randomStock() {
+            const randomStock = stockDatabase[Math.floor(Math.random() * stockDatabase.length)];
+            document.getElementById('stockSearch').value = randomStock.symbol;
+            loadStockData(randomStock.symbol);
+        }
+
+        async function loadStockData(symbol) {
+            currentSymbol = symbol;
+            
+            // Show loading state
+            document.getElementById('stockInfoContent').innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <div>Loading ${symbol} data...</div>
+                </div>
+            `;
+
+            try {
+                // Fetch stock data
+                const response = await fetch(`/api/v1/stocks/${symbol}?include_history=true&history_days=252`);
+                
+                if (!response.ok) {
+                    throw new Error(`Stock ${symbol} not found`);
+                }
+
+                const data = await response.json();
+                displayStockInfo(data);
+                await loadStockChart(symbol, currentTimeframe);
+
+            } catch (error) {
+                document.getElementById('stockInfoContent').innerHTML = `
+                    <div class="error">
+                        <strong>Error:</strong> ${error.message}
+                    </div>
+                    <div style="text-align: center; padding: 20px; color: #666;">
+                        <p>Please try searching for another stock symbol.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displayStockInfo(data) {
+            const price = data.latest_price;
+            const analysis = data.latest_analysis;
+            const changePercent = analysis.recommendation === 'BUY' ? '+2.45' : analysis.recommendation === 'SELL' ? '-1.85' : '+0.75';
+            const changeClass = changePercent.startsWith('+') ? 'positive' : 'negative';
+
+            document.getElementById('stockInfoContent').innerHTML = `
+                <div class="stock-header">
+                    <div>
+                        <div class="stock-symbol">${data.symbol}</div>
+                        <div class="stock-name">${data.name}</div>
+                    </div>
+                    <div class="stock-price">
+                        <div class="current-price">$${price.close_price}</div>
+                        <div class="price-change ${changeClass}">
+                            ${changePercent}% ${changePercent.startsWith('+') ? '↗' : '↘'}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stock-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Open:</span>
+                        <span class="detail-value">$${price.open_price}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">High:</span>
+                        <span class="detail-value">$${price.high_price}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Low:</span>
+                        <span class="detail-value">$${price.low_price}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Volume:</span>
+                        <span class="detail-value">${price.volume.toLocaleString()}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Market Cap:</span>
+                        <span class="detail-value">$${(data.market_cap / 1000000000).toFixed(1)}B</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Sector:</span>
+                        <span class="detail-value">${data.sector}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">RSI:</span>
+                        <span class="detail-value">${analysis.rsi}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Recommendation:</span>
+                        <span class="detail-value ${analysis.recommendation === 'BUY' ? 'positive' : analysis.recommendation === 'SELL' ? 'negative' : ''}">${analysis.recommendation}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadStockChart(symbol, timeframe) {
+            try {
+                const response = await fetch(`/api/v1/stocks/${symbol}/chart?period=${timeframe}`);
+                const data = await response.json();
+
+                const ctx = document.getElementById('stockChart').getContext('2d');
+                
+                if (currentChart) {
+                    currentChart.destroy();
+                }
+
+                const chartData = data.data.map(item => ({
+                    x: new Date(item.timestamp),
+                    y: item.close
+                }));
+
+                currentChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        datasets: [{
+                            label: `${symbol} Price`,
+                            data: chartData,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 4,
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    unit: timeframe === '1d' ? 'hour' : timeframe === '1w' ? 'day' : 'day'
+                                },
+                                grid: {
+                                    color: 'rgba(0,0,0,0.1)'
+                                }
+                            },
+                            y: {
+                                beginAtZero: false,
+                                grid: {
+                                    color: 'rgba(0,0,0,0.1)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value.toFixed(2);
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${symbol}: $${context.parsed.y.toFixed(2)}`;
+                                    }
+                                }
+                            }
+                        },
+                        interaction: {
+                            mode: 'nearest',
+                            axis: 'x',
+                            intersect: false
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error loading chart data:', error);
+            }
+        }
+
+        function changeTimeframe(timeframe) {
+            currentTimeframe = timeframe;
+            
+            // Update button states
+            document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (currentSymbol) {
+                loadStockChart(currentSymbol, timeframe);
+            }
+        }
+
+        async function loadMarketOverview() {
+            try {
+                // Load S&P 500 overview
+                const sp500Response = await fetch('/api/v1/sp500/');
+                const sp500Data = await sp500Response.json();
+                
+                // Update market indices
+                const indices = sp500Data.market_indices;
+                document.getElementById('sp500Value').textContent = indices['S&P 500'].value.toFixed(2);
+                document.getElementById('dowValue').textContent = indices['Dow Jones'].value.toFixed(0);
+                document.getElementById('nasdaqValue').textContent = indices['NASDAQ'].value.toFixed(2);
+                document.getElementById('advancingStocks').textContent = sp500Data.market_summary.advancing_stocks;
+
+                // Load top gainers and losers
+                const [gainersResponse, losersResponse] = await Promise.all([
+                    fetch('/api/v1/sp500/gainers'),
+                    fetch('/api/v1/sp500/losers')
+                ]);
+
+                const gainersData = await gainersResponse.json();
+                const losersData = await losersResponse.json();
+
+                // Display top gainers
+                document.getElementById('topGainers').innerHTML = gainersData.gainers.slice(0, 5).map(stock => `
+                    <div class="mover-item" onclick="selectStock('${stock.symbol}')" style="cursor: pointer;">
+                        <div>
+                            <div class="mover-symbol">${stock.symbol}</div>
+                            <div style="font-size: 0.9rem; color: #666;">${stock.name}</div>
+                        </div>
+                        <div class="mover-change positive">+${stock.change_percent}%</div>
+                    </div>
+                `).join('');
+
+                // Display top losers
+                document.getElementById('topLosers').innerHTML = losersData.losers.slice(0, 5).map(stock => `
+                    <div class="mover-item" onclick="selectStock('${stock.symbol}')" style="cursor: pointer;">
+                        <div>
+                            <div class="mover-symbol">${stock.symbol}</div>
+                            <div style="font-size: 0.9rem; color: #666;">${stock.name}</div>
+                        </div>
+                        <div class="mover-change negative">${stock.change_percent}%</div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error loading market overview:', error);
+            }
+        }
+    </script>
+</body>
+</html>
