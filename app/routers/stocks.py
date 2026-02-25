@@ -10,7 +10,7 @@ import asyncio
 from ..services.database import get_db
 from ..models.stock import StockResponse, StockDetailResponse, StockPriceResponse
 from ..services.market_data import MarketDataService
-from ..services.technical_analysis import TechnicalAnalysisService
+from ..services.simple_technical_analysis import SimpleTechnicalAnalysisService
 
 router = APIRouter()
 
@@ -75,11 +75,12 @@ async def get_stock_detail(
         }
         
         # Calculate technical indicators
-        technical_service = TechnicalAnalysisService()
-        analysis = technical_service.calculate_indicators(hist)
+        technical_service = SimpleTechnicalAnalysisService()
+        prices = hist['Close'].tolist()
+        analysis = technical_service.calculate_basic_indicators(prices)
         
-        # Generate ML prediction (simulated)
-        predicted_prices = technical_service.generate_predictions(hist)
+        # Generate predictions
+        predicted_prices = technical_service.generate_simple_predictions(prices)
         
         # Build response
         stock_detail = {

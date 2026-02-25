@@ -1,12 +1,11 @@
-import pandas as pd
-import numpy as np
+import yfinance as yf
 from typing import Dict, Optional
-import talib
+import math
 
 class TechnicalAnalysisService:
     """Service for calculating technical indicators and analysis"""
     
-    def calculate_indicators(self, hist_data: pd.DataFrame) -> Dict:
+    def calculate_indicators(self, hist_data) -> Dict:
         """Calculate basic technical indicators"""
         
         if hist_data.empty or len(hist_data) < 20:
