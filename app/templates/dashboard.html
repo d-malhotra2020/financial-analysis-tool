@@ -968,15 +968,15 @@
                     }
                 });
 
-                // Add candlestick series
+                // Add candlestick series with proper colors
                 const candlestickSeries = currentTradingViewChart.addCandlestickSeries({
-                    upColor: '#00ff00',
-                    downColor: '#ff4444', 
-                    borderVisible: false,
-                    wickUpColor: '#00ff00',
-                    wickDownColor: '#ff4444',
-                    borderUpColor: '#00ff00',
-                    borderDownColor: '#ff4444',
+                    upColor: '#00ff00',        // Green for bullish (close >= open)
+                    downColor: '#ff0000',      // Red for bearish (close < open)
+                    borderVisible: true,
+                    wickUpColor: '#00ff00',    // Green wicks for bullish
+                    wickDownColor: '#ff0000',  // Red wicks for bearish  
+                    borderUpColor: '#00ff00',  // Green border for bullish
+                    borderDownColor: '#ff0000', // Red border for bearish
                     wickVisible: true,
                     priceFormat: {
                         type: 'price',
@@ -1033,7 +1033,7 @@
                     return {
                         time: time,
                         value: parseInt(item.volume),
-                        color: isUp ? 'rgba(0, 255, 0, 0.4)' : 'rgba(255, 68, 68, 0.4)'
+                        color: isUp ? 'rgba(0, 255, 0, 0.4)' : 'rgba(255, 0, 0, 0.4)'
                     };
                 });
 

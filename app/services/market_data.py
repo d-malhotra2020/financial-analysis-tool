@@ -26,17 +26,35 @@ class MarketDataService:
                 
                 for i in range(13):  # 9:30 AM to 4:00 PM (6.5 hours * 2 = 13 intervals)
                     timestamp = start_time + timedelta(minutes=30 * i)
-                    change = random.uniform(-0.02, 0.02)
-                    current_price = current_price * (1 + change)
+                    
+                    # Use previous close as next open
+                    open_price = current_price
+                    
+                    # Random 30-minute change
+                    change = random.uniform(-0.03, 0.03)  # -3% to +3%
+                    close_price = open_price * (1 + change)
+                    
+                    # Generate realistic high and low
+                    min_price = min(open_price, close_price)
+                    max_price = max(open_price, close_price)
+                    
+                    high_extension = random.uniform(0.002, 0.01)  # 0.2% to 1%
+                    low_extension = random.uniform(0.002, 0.01)
+                    
+                    high_price = max_price * (1 + high_extension)
+                    low_price = min_price * (1 - low_extension)
                     
                     prices.append({
                         "date": timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-                        "open": round(current_price * 0.998, 2),
-                        "high": round(current_price * 1.005, 2),
-                        "low": round(current_price * 0.995, 2),
-                        "close": round(current_price, 2),
+                        "open": round(open_price, 2),
+                        "high": round(high_price, 2),
+                        "low": round(low_price, 2),
+                        "close": round(close_price, 2),
                         "volume": random.randint(500000, 2000000)
                     })
+                    
+                    # Update current price for next iteration
+                    current_price = close_price
             else:
                 # Map period to days for daily data
                 period_map = {
@@ -54,17 +72,35 @@ class MarketDataService:
                 days = period_map.get(period, 30)  # Default to 30 days if period not found
                 
                 for i in range(days):
-                    # Random walk with slight upward bias
-                    change = random.uniform(-0.05, 0.06)
-                    current_price = current_price * (1 + change)
+                    # Use previous close as next open for realistic data
+                    open_price = current_price
+                    
+                    # Random daily change
+                    daily_change = random.uniform(-0.08, 0.10)  # -8% to +10%
+                    close_price = open_price * (1 + daily_change)
+                    
+                    # Generate high and low based on open/close range
+                    min_price = min(open_price, close_price)
+                    max_price = max(open_price, close_price)
+                    
+                    # Extend high/low beyond open/close range
+                    high_extension = random.uniform(0.005, 0.025)  # 0.5% to 2.5%
+                    low_extension = random.uniform(0.005, 0.025)
+                    
+                    high_price = max_price * (1 + high_extension)
+                    low_price = min_price * (1 - low_extension)
+                    
                     prices.append({
                         "date": (datetime.now() - timedelta(days=days-i)).strftime("%Y-%m-%d"),
-                        "open": round(current_price * 0.99, 2),
-                        "high": round(current_price * 1.02, 2),
-                        "low": round(current_price * 0.98, 2),
-                        "close": round(current_price, 2),
+                        "open": round(open_price, 2),
+                        "high": round(high_price, 2), 
+                        "low": round(low_price, 2),
+                        "close": round(close_price, 2),
                         "volume": random.randint(1000000, 10000000)
                     })
+                    
+                    # Update current price for next iteration
+                    current_price = close_price
             
             return {
                 "symbol": symbol,
