@@ -537,6 +537,8 @@
         let currentTimeframe = '1d';
         let currentChartType = 'candlestick';
         let allStocks = [];
+        let cachedChartData = null;
+        let cachedDataKey = null;
 
         // Comprehensive US Stock Database (NYSE, NASDAQ, S&P 500, DOW)
         const stockDatabase = [
@@ -876,8 +878,19 @@
 
         async function loadStockChart(symbol, timeframe) {
             try {
-                const response = await fetch(`/api/v1/stocks/${symbol}/chart?period=${timeframe}`);
-                const data = await response.json();
+                // Check if we have cached data for this symbol and timeframe
+                const dataKey = `${symbol}-${timeframe}`;
+                let data;
+                
+                if (cachedChartData && cachedDataKey === dataKey) {
+                    data = cachedChartData;
+                } else {
+                    const response = await fetch(`/api/v1/stocks/${symbol}/chart?period=${timeframe}`);
+                    data = await response.json();
+                    // Cache the data
+                    cachedChartData = data;
+                    cachedDataKey = dataKey;
+                }
 
                 // Clean up previous charts
                 if (currentChart) {
