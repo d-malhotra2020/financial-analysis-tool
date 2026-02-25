@@ -1,14 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, HTTPException, Query
 from typing import List, Optional
-import yfinance as yf
-import pandas as pd
-import numpy as np
 from datetime import datetime, timedelta
 import asyncio
 
-from ..services.database import get_db
-from ..models.stock import StockResponse, StockDetailResponse, StockPriceResponse
 from ..services.market_data import MarketDataService
 from ..services.simple_technical_analysis import SimpleTechnicalAnalysisService
 
@@ -51,56 +45,55 @@ async def get_stock_detail(
     """Get detailed stock information including latest price and analysis"""
     
     try:
-        # Get stock info from Yahoo Finance
-        stock = yf.Ticker(symbol.upper())
-        info = stock.info
+        # Use mock data services
+        market_service = MarketDataService()
+        technical_service = SimpleTechnicalAnalysisService()
         
-        # Get recent price data
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=history_days)
-        hist = stock.history(start=start_date, end=end_date)
+        # Get stock data and info
+        stock_data = market_service.get_stock_data(symbol, "1y")
+        stock_info = market_service.get_stock_info(symbol)
         
-        if hist.empty:
+        if not stock_data or not stock_info:
             raise HTTPException(status_code=404, detail=f"Stock {symbol} not found")
         
-        # Get latest price
+        # Extract prices for technical analysis
+        prices = [day["close"] for day in stock_data["data"][-history_days:]]
+        
+        # Get latest price data
+        latest_data = stock_data["data"][-1]
         latest_price = {
-            "timestamp": hist.index[-1],
-            "open_price": float(hist['Open'].iloc[-1]),
-            "high_price": float(hist['High'].iloc[-1]),
-            "low_price": float(hist['Low'].iloc[-1]),
-            "close_price": float(hist['Close'].iloc[-1]),
-            "volume": int(hist['Volume'].iloc[-1]),
-            "adjusted_close": float(hist['Close'].iloc[-1])
+            "timestamp": datetime.now(),
+            "open_price": latest_data["open"],
+            "high_price": latest_data["high"],
+            "low_price": latest_data["low"],
+            "close_price": latest_data["close"],
+            "volume": latest_data["volume"],
+            "adjusted_close": latest_data["close"]
         }
         
         # Calculate technical indicators
-        technical_service = SimpleTechnicalAnalysisService()
-        prices = hist['Close'].tolist()
         analysis = technical_service.calculate_basic_indicators(prices)
-        
-        # Generate predictions
         predicted_prices = technical_service.generate_simple_predictions(prices)
         
         # Build response
         stock_detail = {
             "id": 1,
             "symbol": symbol.upper(),
-            "name": info.get('longName', f"{symbol.upper()} Inc."),
-            "exchange": info.get('exchange', 'NASDAQ'),
-            "sector": info.get('sector', 'Technology'),
-            "industry": info.get('industry', 'Software'),
-            "market_cap": info.get('marketCap'),
+            "name": stock_info["name"],
+            "exchange": "NASDAQ",
+            "sector": stock_info["sector"],
+            "industry": stock_info["industry"],
+            "market_cap": stock_info["market_cap"],
             "created_at": datetime.now(),
             "updated_at": datetime.now(),
             "latest_price": latest_price,
             "latest_analysis": {
                 "analysis_date": datetime.now(),
                 "rsi": analysis.get('rsi'),
-                "macd": analysis.get('macd'),
+                "macd": None,
                 "volatility": analysis.get('volatility'),
-                "beta": info.get('beta'),
-                "sharpe_ratio": analysis.get('sharpe_ratio'),
+                "beta": 1.2,
+                "sharpe_ratio": None,
                 "predicted_price_1d": predicted_prices.get('1d'),
                 "predicted_price_7d": predicted_prices.get('7d'),
                 "predicted_price_30d": predicted_prices.get('30d'),
@@ -113,15 +106,15 @@ async def get_stock_detail(
         # Add price history if requested
         if include_history:
             price_history = []
-            for idx, row in hist.iterrows():
+            for day in stock_data["data"][-history_days:]:
                 price_history.append({
-                    "timestamp": idx,
-                    "open_price": float(row['Open']),
-                    "high_price": float(row['High']),
-                    "low_price": float(row['Low']),
-                    "close_price": float(row['Close']),
-                    "volume": int(row['Volume']),
-                    "adjusted_close": float(row['Close'])
+                    "timestamp": datetime.strptime(day["date"], "%Y-%m-%d"),
+                    "open_price": day["open"],
+                    "high_price": day["high"],
+                    "low_price": day["low"],
+                    "close_price": day["close"],
+                    "volume": day["volume"],
+                    "adjusted_close": day["close"]
                 })
             stock_detail["price_history"] = price_history
         
@@ -139,10 +132,10 @@ async def get_stock_chart_data(
     """Get stock chart data for visualization"""
     
     try:
-        stock = yf.Ticker(symbol.upper())
-        hist = stock.history(period=period, interval=interval)
+        market_service = MarketDataService()
+        stock_data = market_service.get_stock_data(symbol, period)
         
-        if hist.empty:
+        if not stock_data:
             raise HTTPException(status_code=404, detail=f"No chart data found for {symbol}")
         
         chart_data = {
@@ -152,14 +145,14 @@ async def get_stock_chart_data(
             "data": []
         }
         
-        for idx, row in hist.iterrows():
+        for day in stock_data["data"]:
             chart_data["data"].append({
-                "timestamp": idx.isoformat(),
-                "open": float(row['Open']),
-                "high": float(row['High']),
-                "low": float(row['Low']),
-                "close": float(row['Close']),
-                "volume": int(row['Volume'])
+                "timestamp": day["date"],
+                "open": day["open"],
+                "high": day["high"],
+                "low": day["low"],
+                "close": day["close"],
+                "volume": day["volume"]
             })
         
         return chart_data
@@ -172,34 +165,36 @@ async def get_technical_analysis(symbol: str):
     """Get comprehensive technical analysis for a stock"""
     
     try:
-        stock = yf.Ticker(symbol.upper())
+        market_service = MarketDataService()
+        technical_service = SimpleTechnicalAnalysisService()
         
         # Get 1 year of data for comprehensive analysis
-        hist = stock.history(period="1y")
+        stock_data = market_service.get_stock_data(symbol, "1y")
         
-        if hist.empty:
+        if not stock_data:
             raise HTTPException(status_code=404, detail=f"Stock {symbol} not found")
         
-        technical_service = TechnicalAnalysisService()
+        # Extract prices for analysis
+        prices = [day["close"] for day in stock_data["data"]]
         
-        # Calculate all technical indicators
-        indicators = technical_service.calculate_comprehensive_analysis(hist)
+        # Calculate basic technical indicators
+        indicators = technical_service.calculate_basic_indicators(prices)
         
         # Generate predictions
-        predictions = technical_service.generate_predictions(hist)
-        
-        # Risk analysis
-        risk_metrics = technical_service.calculate_risk_metrics(hist)
+        predictions = technical_service.generate_simple_predictions(prices)
         
         return {
             "symbol": symbol.upper(),
             "analysis_date": datetime.now().isoformat(),
             "technical_indicators": indicators,
             "predictions": predictions,
-            "risk_metrics": risk_metrics,
+            "risk_metrics": {
+                "volatility_annual": indicators.get('volatility', 0),
+                "risk_score": 25.0
+            },
             "summary": {
                 "trend": indicators.get('trend', 'neutral'),
-                "strength": indicators.get('strength', 'moderate'),
+                "strength": "moderate",
                 "recommendation": indicators.get('recommendation', 'HOLD'),
                 "confidence": 0.94
             }
@@ -209,7 +204,7 @@ async def get_technical_analysis(symbol: str):
         raise HTTPException(status_code=400, detail=f"Error performing technical analysis: {str(e)}")
 
 @router.post("/{symbol}/watchlist")
-async def add_to_watchlist(symbol: str, db: AsyncSession = Depends(get_db)):
+async def add_to_watchlist(symbol: str):
     """Add stock to user's watchlist"""
     
     # Simulate adding to watchlist
