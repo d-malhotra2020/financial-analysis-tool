@@ -479,7 +479,7 @@
                     </div>
                 </div>
                 <div class="chart-wrapper">
-                    <canvas id="stockChart"></canvas>
+                    <div id="stockChart"></div>
                 </div>
             </div>
         </div>
@@ -862,7 +862,7 @@
                 const response = await fetch(`/api/v1/stocks/${symbol}/chart?period=${timeframe}`);
                 const data = await response.json();
 
-                const ctx = document.getElementById('stockChart').getContext('2d');
+                const chartContainer = document.getElementById('stockChart');
                 
                 if (currentChart) {
                     currentChart.destroy();
@@ -874,9 +874,16 @@
                     currentTradingViewChart = null;
                 }
 
+                // Clear the container
+                chartContainer.innerHTML = '';
+
                 if (currentChartType === 'candlestick') {
                     await createTradingViewCandlestickChart(data, symbol);
                 } else {
+                    // Create canvas element for Chart.js
+                    const canvas = document.createElement('canvas');
+                    chartContainer.appendChild(canvas);
+                    const ctx = canvas.getContext('2d');
                     await createLineChart(ctx, data, symbol);
                 }
 
@@ -886,13 +893,18 @@
         }
 
         async function createTradingViewCandlestickChart(data, symbol) {
-            const chartContainer = document.getElementById('stockChart');
-            
-            // Clear any existing canvas
-            chartContainer.innerHTML = '';
-            
-            // Create TradingView chart
-            currentTradingViewChart = LightweightCharts.createChart(chartContainer, {
+            try {
+                const chartContainer = document.getElementById('stockChart');
+                
+                if (!chartContainer) {
+                    console.error('Chart container not found');
+                    return;
+                }
+
+                console.log('Creating TradingView chart for', symbol, 'with', data.data.length, 'data points');
+                
+                // Create TradingView chart
+                currentTradingViewChart = LightweightCharts.createChart(chartContainer, {
                 width: chartContainer.clientWidth,
                 height: 400,
                 layout: {
@@ -933,16 +945,21 @@
 
             // Convert data to TradingView format
             const candlestickData = data.data.map(item => {
-                const timestamp = currentTimeframe === '1d' ? 
-                    new Date(item.timestamp).getTime() / 1000 : 
-                    new Date(item.timestamp).getTime() / 1000;
+                let timestamp;
+                if (currentTimeframe === '1d') {
+                    // For intraday data, use full timestamp
+                    timestamp = Math.floor(new Date(item.timestamp).getTime() / 1000);
+                } else {
+                    // For daily data, use date only (YYYY-MM-DD format)
+                    timestamp = item.timestamp;
+                }
                 
                 return {
                     time: timestamp,
-                    open: item.open,
-                    high: item.high,
-                    low: item.low,
-                    close: item.close
+                    open: parseFloat(item.open),
+                    high: parseFloat(item.high),
+                    low: parseFloat(item.low),
+                    close: parseFloat(item.close)
                 };
             });
 
@@ -962,14 +979,19 @@
             });
 
             const volumeData = data.data.map(item => {
-                const timestamp = currentTimeframe === '1d' ? 
-                    new Date(item.timestamp).getTime() / 1000 : 
-                    new Date(item.timestamp).getTime() / 1000;
+                let timestamp;
+                if (currentTimeframe === '1d') {
+                    // For intraday data, use full timestamp
+                    timestamp = Math.floor(new Date(item.timestamp).getTime() / 1000);
+                } else {
+                    // For daily data, use date only (YYYY-MM-DD format)
+                    timestamp = item.timestamp;
+                }
                 
                 return {
                     time: timestamp,
-                    value: item.volume,
-                    color: item.close >= item.open ? 'rgba(0, 255, 0, 0.3)' : 'rgba(255, 68, 68, 0.3)'
+                    value: parseInt(item.volume),
+                    color: parseFloat(item.close) >= parseFloat(item.open) ? 'rgba(0, 255, 0, 0.3)' : 'rgba(255, 68, 68, 0.3)'
                 };
             });
 
@@ -986,7 +1008,18 @@
                     });
                 }
             });
+
+            console.log('TradingView chart created successfully');
+            
+        } catch (error) {
+            console.error('Error creating TradingView chart:', error);
+            // Fallback to line chart if TradingView fails
+            const canvas = document.createElement('canvas');
+            document.getElementById('stockChart').appendChild(canvas);
+            const ctx = canvas.getContext('2d');
+            await createLineChart(ctx, data, symbol);
         }
+    }
 
         async function createLineChart(ctx, data, symbol) {
             const priceData = data.data.map(item => ({
