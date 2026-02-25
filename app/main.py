@@ -3,8 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 import uvicorn
 import os
-from .routers import stocks, portfolio, predictions, analysis
+import asyncio
+from .routers import stocks, portfolio, predictions, analysis, sp500
 from .services.database import init_db
+from .services.sp500_service import sp500_service
 from .utils.config import get_settings
 
 # Initialize settings
@@ -30,17 +32,23 @@ app.add_middleware(
 
 # Include routers
 app.include_router(stocks.router, prefix="/api/v1/stocks", tags=["Stocks"])
+app.include_router(sp500.router, prefix="/api/v1/sp500", tags=["S&P 500"])
 app.include_router(portfolio.router, prefix="/api/v1/portfolio", tags=["Portfolio"])
 app.include_router(predictions.router, prefix="/api/v1/predictions", tags=["Predictions"])
 app.include_router(analysis.router, prefix="/api/v1/analysis", tags=["Analysis"])
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize database on startup"""
+    """Initialize database and start background tasks on startup"""
     await init_db()
+    
+    # Start S&P 500 background updates
+    asyncio.create_task(sp500_service.start_background_updates())
+    
     print("🚀 Financial Data Analysis Tool started successfully!")
     print(f"📊 Processing capability: {settings.max_daily_data_points:,} data points/day")
     print(f"🤖 ML Model accuracy: {settings.model_accuracy}%")
+    print(f"📈 S&P 500 real-time data: Updates every 5 minutes")
     print(f"📡 API Documentation: http://localhost:8000/docs")
 
 @app.get("/", response_class=HTMLResponse)
@@ -128,7 +136,31 @@ async def root():
                 </div>
             </div>
             
-            <h2>🔗 API Endpoints</h2>
+            <h2>📈 S&P 500 Real-Time Data</h2>
+            <div class="endpoints">
+                <div class="endpoint">
+                    <div class="method">GET</div>
+                    <div>/api/v1/sp500/</div>
+                    <div>S&P 500 market overview (Updates every 5min)</div>
+                </div>
+                <div class="endpoint">
+                    <div class="method">GET</div>
+                    <div>/api/v1/sp500/gainers</div>
+                    <div>Top 10 S&P 500 gainers</div>
+                </div>
+                <div class="endpoint">
+                    <div class="method">GET</div>
+                    <div>/api/v1/sp500/losers</div>
+                    <div>Top 10 S&P 500 losers</div>
+                </div>
+                <div class="endpoint">
+                    <div class="method">GET</div>
+                    <div>/api/v1/sp500/sectors</div>
+                    <div>Sector performance data</div>
+                </div>
+            </div>
+            
+            <h2>🔗 Additional API Endpoints</h2>
             <div class="endpoints">
                 <div class="endpoint">
                     <div class="method">GET</div>
@@ -136,19 +168,19 @@ async def root():
                     <div>Get stock data and analysis</div>
                 </div>
                 <div class="endpoint">
-                    <div class="method">POST</div>
-                    <div>/api/v1/portfolio/analyze</div>
-                    <div>Analyze portfolio risk</div>
+                    <div class="method">GET</div>
+                    <div>/api/v1/sp500/summary</div>
+                    <div>Complete market summary</div>
                 </div>
                 <div class="endpoint">
                     <div class="method">GET</div>
-                    <div>/api/v1/predictions/{symbol}</div>
-                    <div>ML price predictions</div>
+                    <div>/api/v1/sp500/indices</div>
+                    <div>Major market indices</div>
                 </div>
                 <div class="endpoint">
                     <div class="method">GET</div>
-                    <div>/api/v1/analysis/market-overview</div>
-                    <div>Market analysis dashboard</div>
+                    <div>/api/v1/stocks/search</div>
+                    <div>Search stocks by symbol</div>
                 </div>
             </div>
             
