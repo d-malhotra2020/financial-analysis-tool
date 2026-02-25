@@ -6,7 +6,6 @@
     <title>Financial Analysis Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
     <style>
         * {
             margin: 0;
@@ -479,7 +478,7 @@
                     </div>
                 </div>
                 <div class="chart-wrapper">
-                    <div id="stockChart"></div>
+                    <canvas id="stockChart"></canvas>
                 </div>
             </div>
         </div>
@@ -520,7 +519,6 @@
 
     <script>
         let currentChart = null;
-        let currentTradingViewChart = null;
         let currentSymbol = null;
         let currentTimeframe = '1d';
         let currentChartType = 'candlestick';
@@ -862,29 +860,16 @@
                 const response = await fetch(`/api/v1/stocks/${symbol}/chart?period=${timeframe}`);
                 const data = await response.json();
 
-                const chartContainer = document.getElementById('stockChart');
+                const ctx = document.getElementById('stockChart').getContext('2d');
                 
                 if (currentChart) {
                     currentChart.destroy();
-                    currentChart = null;
                 }
-                
-                if (currentTradingViewChart) {
-                    currentTradingViewChart.remove();
-                    currentTradingViewChart = null;
-                }
-
-                // Clear the container
-                chartContainer.innerHTML = '';
 
                 if (currentChartType === 'candlestick') {
-                    await createTradingViewCandlestickChart(data, symbol);
+                    createCandlestickChart(ctx, data, symbol);
                 } else {
-                    // Create canvas element for Chart.js
-                    const canvas = document.createElement('canvas');
-                    chartContainer.appendChild(canvas);
-                    const ctx = canvas.getContext('2d');
-                    await createLineChart(ctx, data, symbol);
+                    createLineChart(ctx, data, symbol);
                 }
 
             } catch (error) {
@@ -892,134 +877,190 @@
             }
         }
 
-        async function createTradingViewCandlestickChart(data, symbol) {
-            try {
-                const chartContainer = document.getElementById('stockChart');
-                
-                if (!chartContainer) {
-                    console.error('Chart container not found');
-                    return;
-                }
+        function createCandlestickChart(ctx, data, symbol) {
+            // Create simple candlestick visualization using Chart.js bar charts
+            const chartData = data.data.map(item => ({
+                x: item.timestamp,
+                open: parseFloat(item.open),
+                high: parseFloat(item.high), 
+                low: parseFloat(item.low),
+                close: parseFloat(item.close),
+                volume: parseInt(item.volume)
+            }));
 
-                console.log('Creating TradingView chart for', symbol, 'with', data.data.length, 'data points');
-                
-                // Create TradingView chart
-                currentTradingViewChart = LightweightCharts.createChart(chartContainer, {
-                width: chartContainer.clientWidth,
-                height: 400,
-                layout: {
-                    background: { color: '#000000' },
-                    textColor: '#00ff00',
-                    fontFamily: "'Consolas', 'Monaco', 'Courier New', monospace"
-                },
-                grid: {
-                    vertLines: { color: 'rgba(0, 150, 0, 0.2)' },
-                    horzLines: { color: 'rgba(0, 150, 0, 0.2)' }
-                },
-                crosshair: {
-                    mode: LightweightCharts.CrosshairMode.Normal,
-                    vertLine: { color: '#00ff00', width: 1 },
-                    horzLine: { color: '#00ff00', width: 1 }
-                },
-                rightPriceScale: {
-                    borderColor: '#00aa00',
-                    textColor: '#00cc00'
-                },
-                timeScale: {
-                    borderColor: '#00aa00',
-                    textColor: '#00cc00',
-                    timeVisible: currentTimeframe === '1d',
-                    secondsVisible: false
-                }
-            });
+            // Create high-low bars (wicks)
+            const wickData = chartData.map(item => ({
+                x: item.x,
+                y: [item.low, item.high]
+            }));
 
-            // Create candlestick series
-            const candlestickSeries = currentTradingViewChart.addCandlestickSeries({
-                upColor: '#00ff00',
-                downColor: '#ff4444',
-                borderUpColor: '#00ff00',
-                borderDownColor: '#ff4444',
-                wickUpColor: '#00ff00',
-                wickDownColor: '#ff4444'
-            });
-
-            // Convert data to TradingView format
-            const candlestickData = data.data.map(item => {
-                let timestamp;
-                if (currentTimeframe === '1d') {
-                    // For intraday data, use full timestamp
-                    timestamp = Math.floor(new Date(item.timestamp).getTime() / 1000);
-                } else {
-                    // For daily data, use date only (YYYY-MM-DD format)
-                    timestamp = item.timestamp;
-                }
-                
+            // Create body bars (open-close)
+            const bodyData = chartData.map(item => {
+                const isGreen = item.close >= item.open;
                 return {
-                    time: timestamp,
-                    open: parseFloat(item.open),
-                    high: parseFloat(item.high),
-                    low: parseFloat(item.low),
-                    close: parseFloat(item.close)
+                    x: item.x,
+                    y: [Math.min(item.open, item.close), Math.max(item.open, item.close)],
+                    backgroundColor: isGreen ? '#00ff00' : '#ff4444',
+                    borderColor: isGreen ? '#00ff00' : '#ff4444'
                 };
             });
 
-            candlestickSeries.setData(candlestickData);
+            const volumeData = chartData.map(item => ({
+                x: item.x,
+                y: item.volume
+            }));
 
-            // Add volume series
-            const volumeSeries = currentTradingViewChart.addHistogramSeries({
-                color: 'rgba(0, 100, 0, 0.5)',
-                priceFormat: {
-                    type: 'volume'
+            currentChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    datasets: [{
+                        label: `${symbol} Wicks`,
+                        data: wickData,
+                        backgroundColor: 'rgba(0, 255, 0, 0.3)',
+                        borderColor: '#00aa00',
+                        borderWidth: 1,
+                        barPercentage: 0.8,
+                        categoryPercentage: 0.9,
+                        yAxisID: 'price'
+                    }, {
+                        label: `${symbol} Bodies`, 
+                        data: bodyData,
+                        backgroundColor: function(ctx) {
+                            return bodyData[ctx.dataIndex]?.backgroundColor || '#00ff00';
+                        },
+                        borderColor: function(ctx) {
+                            return bodyData[ctx.dataIndex]?.borderColor || '#00ff00';
+                        },
+                        borderWidth: 1,
+                        barPercentage: 0.6,
+                        categoryPercentage: 0.9,
+                        yAxisID: 'price'
+                    }, {
+                        label: 'Volume',
+                        data: volumeData,
+                        backgroundColor: 'rgba(0, 100, 0, 0.3)',
+                        borderColor: 'rgba(0, 150, 0, 0.5)',
+                        borderWidth: 1,
+                        yAxisID: 'volume',
+                        barPercentage: 0.8
+                    }]
                 },
-                priceScaleId: 'left',
-                scaleMargins: {
-                    top: 0.7,
-                    bottom: 0
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: getTimeUnit(currentTimeframe),
+                                displayFormats: {
+                                    hour: 'HH:mm',
+                                    day: 'MMM dd',
+                                    week: 'MMM dd',
+                                    month: 'MMM yyyy'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 150, 0, 0.2)',
+                                borderColor: '#004400'
+                            },
+                            ticks: {
+                                color: '#00cc00',
+                                font: {
+                                    family: "'Consolas', 'Monaco', 'Courier New', monospace",
+                                    size: 11
+                                }
+                            }
+                        },
+                        price: {
+                            type: 'linear',
+                            position: 'right',
+                            beginAtZero: false,
+                            grid: {
+                                color: 'rgba(0, 150, 0, 0.2)',
+                                borderColor: '#004400'
+                            },
+                            ticks: {
+                                color: '#00ffaa',
+                                font: {
+                                    family: "'Consolas', 'Monaco', 'Courier New', monospace",
+                                    size: 11
+                                },
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            }
+                        },
+                        volume: {
+                            type: 'linear',
+                            position: 'left',
+                            beginAtZero: true,
+                            max: function(context) {
+                                const volumes = volumeData.map(d => d.y);
+                                return Math.max(...volumes) * 4;
+                            },
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#006600',
+                                font: {
+                                    family: "'Consolas', 'Monaco', 'Courier New', monospace",
+                                    size: 10
+                                },
+                                callback: function(value) {
+                                    return (value / 1000000).toFixed(1) + 'M';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                            borderColor: '#00ff00',
+                            borderWidth: 1,
+                            titleColor: '#00ff00',
+                            bodyColor: '#00cc00',
+                            titleFont: {
+                                family: "'Consolas', 'Monaco', 'Courier New', monospace"
+                            },
+                            bodyFont: {
+                                family: "'Consolas', 'Monaco', 'Courier New', monospace"
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    const dataIndex = context.dataIndex;
+                                    const item = chartData[dataIndex];
+                                    if (context.datasetIndex === 1) { // Bodies dataset
+                                        return [
+                                            `${symbol} OHLC:`,
+                                            `Open: $${item.open.toFixed(2)}`,
+                                            `High: $${item.high.toFixed(2)}`,
+                                            `Low: $${item.low.toFixed(2)}`,
+                                            `Close: $${item.close.toFixed(2)}`,
+                                            `Volume: ${item.volume.toLocaleString()}`
+                                        ];
+                                    } else if (context.datasetIndex === 2) { // Volume dataset
+                                        return `Volume: ${context.parsed.y.toLocaleString()}`;
+                                    }
+                                    return '';
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
                 }
             });
-
-            const volumeData = data.data.map(item => {
-                let timestamp;
-                if (currentTimeframe === '1d') {
-                    // For intraday data, use full timestamp
-                    timestamp = Math.floor(new Date(item.timestamp).getTime() / 1000);
-                } else {
-                    // For daily data, use date only (YYYY-MM-DD format)
-                    timestamp = item.timestamp;
-                }
-                
-                return {
-                    time: timestamp,
-                    value: parseInt(item.volume),
-                    color: parseFloat(item.close) >= parseFloat(item.open) ? 'rgba(0, 255, 0, 0.3)' : 'rgba(255, 68, 68, 0.3)'
-                };
-            });
-
-            volumeSeries.setData(volumeData);
-
-            // Auto-fit content
-            currentTradingViewChart.timeScale().fitContent();
-
-            // Handle resize
-            window.addEventListener('resize', () => {
-                if (currentTradingViewChart) {
-                    currentTradingViewChart.applyOptions({
-                        width: chartContainer.clientWidth
-                    });
-                }
-            });
-
-            console.log('TradingView chart created successfully');
-            
-        } catch (error) {
-            console.error('Error creating TradingView chart:', error);
-            // Fallback to line chart if TradingView fails
-            const canvas = document.createElement('canvas');
-            document.getElementById('stockChart').appendChild(canvas);
-            const ctx = canvas.getContext('2d');
-            await createLineChart(ctx, data, symbol);
         }
-    }
 
         async function createLineChart(ctx, data, symbol) {
             const priceData = data.data.map(item => ({
