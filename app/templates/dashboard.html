@@ -14,10 +14,12 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background: #000000;
             min-height: 100vh;
-            color: #333;
+            color: #00ff00;
+            margin: 0;
+            padding: 0;
         }
 
         .container {
@@ -28,28 +30,34 @@
 
         .header {
             text-align: center;
-            color: white;
+            color: #00ff00;
             margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #00ff00;
+            border-radius: 5px;
+            background: rgba(0, 255, 0, 0.05);
         }
 
         .header h1 {
-            font-size: 3rem;
+            font-size: 2.5rem;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 0 0 10px #00ff00;
+            letter-spacing: 2px;
         }
 
         .header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
+            font-size: 1rem;
+            opacity: 0.8;
+            color: #00cc00;
         }
 
         .search-section {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
+            background: #111111;
+            border: 2px solid #00ff00;
+            border-radius: 5px;
             padding: 25px;
             margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
         }
 
         .search-container {
@@ -62,59 +70,71 @@
         .search-input {
             flex: 1;
             padding: 12px 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 25px;
+            border: 2px solid #00aa00;
+            border-radius: 3px;
             font-size: 16px;
             outline: none;
             transition: all 0.3s ease;
+            background: #000000;
+            color: #00ff00;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
         }
 
         .search-input:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #00ff00;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        .search-input::placeholder {
+            color: #006600;
         }
 
         .search-btn, .random-btn {
             padding: 12px 25px;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            border-radius: 25px;
+            background: #000000;
+            color: #00ff00;
+            border: 2px solid #00aa00;
+            border-radius: 3px;
             font-size: 16px;
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 600;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
         }
 
         .search-btn:hover, .random-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            background: #001100;
+            border-color: #00ff00;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+            text-shadow: 0 0 5px #00ff00;
         }
 
         .suggestions {
             display: none;
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
+            background: #111111;
+            border: 2px solid #00aa00;
+            border-radius: 3px;
             max-height: 200px;
             overflow-y: auto;
             position: absolute;
             width: 100%;
             z-index: 1000;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
         }
 
         .suggestion-item {
             padding: 12px 20px;
             cursor: pointer;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid #003300;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            color: #00cc00;
         }
 
         .suggestion-item:hover {
-            background: #f8f9fa;
+            background: #002200;
+            color: #00ff00;
         }
 
         .suggestion-item:last-child {
@@ -128,20 +148,21 @@
 
         .company-symbol {
             font-weight: bold;
-            color: #667eea;
+            color: #00ff00;
         }
 
         .company-name {
             font-size: 0.9rem;
-            color: #666;
+            color: #00aa00;
         }
 
         .company-sector {
             font-size: 0.8rem;
-            color: #999;
-            background: #f0f2f5;
+            color: #00ff00;
+            background: #002200;
             padding: 2px 8px;
-            border-radius: 12px;
+            border-radius: 3px;
+            border: 1px solid #004400;
         }
 
         .dashboard-grid {
@@ -152,11 +173,11 @@
         }
 
         .stock-info, .chart-container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
+            background: #111111;
+            border: 2px solid #00aa00;
+            border-radius: 5px;
             padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
         }
 
         .stock-header {
@@ -165,18 +186,19 @@
             align-items: center;
             margin-bottom: 20px;
             padding-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
+            border-bottom: 2px solid #003300;
         }
 
         .stock-symbol {
             font-size: 2rem;
             font-weight: bold;
-            color: #667eea;
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00;
         }
 
         .stock-name {
             font-size: 1.1rem;
-            color: #666;
+            color: #00cc00;
         }
 
         .stock-price {
@@ -186,7 +208,8 @@
         .current-price {
             font-size: 2.5rem;
             font-weight: bold;
-            color: #333;
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00;
         }
 
         .price-change {
@@ -195,11 +218,13 @@
         }
 
         .positive {
-            color: #4CAF50;
+            color: #00ff00;
+            text-shadow: 0 0 3px #00ff00;
         }
 
         .negative {
-            color: #f44336;
+            color: #ff0000;
+            text-shadow: 0 0 3px #ff0000;
         }
 
         .stock-details {
@@ -212,18 +237,19 @@
             display: flex;
             justify-content: space-between;
             padding: 10px;
-            background: #f8f9fa;
-            border-radius: 8px;
+            background: #002200;
+            border-radius: 3px;
+            border: 1px solid #004400;
         }
 
         .detail-label {
             font-weight: 600;
-            color: #555;
+            color: #00aa00;
         }
 
         .detail-value {
             font-weight: bold;
-            color: #333;
+            color: #00ff00;
         }
 
         .chart-controls {
@@ -234,18 +260,22 @@
 
         .time-btn {
             padding: 8px 16px;
-            border: 2px solid #667eea;
-            background: transparent;
-            color: #667eea;
-            border-radius: 20px;
+            border: 2px solid #00aa00;
+            background: #000000;
+            color: #00aa00;
+            border-radius: 3px;
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 600;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
         }
 
         .time-btn.active, .time-btn:hover {
-            background: #667eea;
-            color: white;
+            background: #001100;
+            color: #00ff00;
+            border-color: #00ff00;
+            box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+            text-shadow: 0 0 3px #00ff00;
         }
 
         .chart-wrapper {
@@ -255,11 +285,17 @@
         }
 
         .market-overview {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
+            background: #111111;
+            border: 2px solid #00aa00;
+            border-radius: 5px;
             padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+        }
+
+        .market-overview h2 {
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00;
+            margin-bottom: 20px;
         }
 
         .market-stats {
@@ -270,38 +306,44 @@
         }
 
         .stat-card {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
+            background: #002200;
+            color: #00ff00;
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 5px;
+            border: 2px solid #004400;
             text-align: center;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
         }
 
         .stat-value {
             font-size: 2rem;
             font-weight: bold;
             margin-bottom: 5px;
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00;
         }
 
         .stat-label {
             font-size: 0.9rem;
-            opacity: 0.9;
+            opacity: 0.8;
+            color: #00cc00;
         }
 
         .loading {
             text-align: center;
             padding: 40px;
-            color: #666;
+            color: #00aa00;
         }
 
         .loading-spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border: 3px solid #002200;
+            border-top: 3px solid #00ff00;
             border-radius: 50%;
             width: 40px;
             height: 40px;
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
         }
 
         @keyframes spin {
@@ -310,12 +352,13 @@
         }
 
         .error {
-            background: #ffebee;
-            color: #c62828;
+            background: #220000;
+            color: #ff0000;
             padding: 15px;
-            border-radius: 10px;
+            border-radius: 5px;
             margin: 10px 0;
-            border-left: 4px solid #c62828;
+            border: 2px solid #440000;
+            text-shadow: 0 0 3px #ff0000;
         }
 
         .top-movers {
@@ -326,16 +369,18 @@
         }
 
         .mover-section {
-            background: #f8f9fa;
+            background: #002200;
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 5px;
+            border: 2px solid #004400;
         }
 
         .mover-title {
             font-size: 1.2rem;
             font-weight: bold;
             margin-bottom: 15px;
-            color: #333;
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00;
         }
 
         .mover-item {
@@ -343,7 +388,13 @@
             justify-content: space-between;
             align-items: center;
             padding: 8px 0;
-            border-bottom: 1px solid #e0e0e0;
+            border-bottom: 1px solid #004400;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mover-item:hover {
+            background: #001100;
         }
 
         .mover-item:last-child {
@@ -352,7 +403,7 @@
 
         .mover-symbol {
             font-weight: bold;
-            color: #667eea;
+            color: #00ff00;
         }
 
         .mover-change {
@@ -400,7 +451,7 @@
         <div class="dashboard-grid">
             <div class="stock-info">
                 <div id="stockInfoContent">
-                    <div style="text-align: center; padding: 40px; color: #666;">
+                    <div style="text-align: center; padding: 40px; color: #006600;">
                         <h3>🔍 Search for a stock to view details</h3>
                         <p>Use the search bar above to find and analyze any S&P 500 company</p>
                     </div>
@@ -411,8 +462,8 @@
                 <div class="chart-controls">
                     <button class="time-btn active" onclick="changeTimeframe('1d')">1D</button>
                     <button class="time-btn" onclick="changeTimeframe('1w')">1W</button>
-                    <button class="time-btn" onclick="changeTimeframe('1m')">1M</button>
-                    <button class="time-btn" onclick="changeTimeframe('3m')">3M</button>
+                    <button class="time-btn" onclick="changeTimeframe('1mo')">1M</button>
+                    <button class="time-btn" onclick="changeTimeframe('3mo')">3M</button>
                     <button class="time-btn" onclick="changeTimeframe('1y')">1Y</button>
                 </div>
                 <div class="chart-wrapper">
@@ -622,7 +673,7 @@
                     <div class="error">
                         <strong>Error:</strong> ${error.message}
                     </div>
-                    <div style="text-align: center; padding: 20px; color: #666;">
+                    <div style="text-align: center; padding: 20px; color: #006600;">
                         <p>Please try searching for another stock symbol.</p>
                     </div>
                 `;
@@ -697,9 +748,14 @@
                     currentChart.destroy();
                 }
 
-                const chartData = data.data.map(item => ({
+                const priceData = data.data.map(item => ({
                     x: new Date(item.timestamp),
                     y: item.close
+                }));
+
+                const volumeData = data.data.map(item => ({
+                    x: new Date(item.timestamp),
+                    y: item.volume
                 }));
 
                 currentChart = new Chart(ctx, {
@@ -707,14 +763,26 @@
                     data: {
                         datasets: [{
                             label: `${symbol} Price`,
-                            data: chartData,
-                            borderColor: '#667eea',
-                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            data: priceData,
+                            borderColor: '#00ffaa',
+                            backgroundColor: 'rgba(0, 255, 170, 0.1)',
                             fill: true,
-                            tension: 0.4,
+                            tension: 0.3,
                             pointRadius: 0,
-                            pointHoverRadius: 4,
-                            borderWidth: 2
+                            pointHoverRadius: 6,
+                            borderWidth: 3,
+                            pointBorderColor: '#00ffaa',
+                            pointBackgroundColor: '#00ffaa',
+                            yAxisID: 'price'
+                        }, {
+                            label: 'Volume',
+                            type: 'bar',
+                            data: volumeData,
+                            backgroundColor: 'rgba(0, 100, 0, 0.3)',
+                            borderColor: 'rgba(0, 150, 0, 0.5)',
+                            borderWidth: 1,
+                            yAxisID: 'volume',
+                            barPercentage: 0.8
                         }]
                     },
                     options: {
@@ -724,20 +792,64 @@
                             x: {
                                 type: 'time',
                                 time: {
-                                    unit: timeframe === '1d' ? 'hour' : timeframe === '1w' ? 'day' : 'day'
+                                    unit: getTimeUnit(timeframe),
+                                    displayFormats: {
+                                        hour: 'MMM dd HH:mm',
+                                        day: 'MMM dd',
+                                        week: 'MMM dd',
+                                        month: 'MMM yyyy'
+                                    }
                                 },
                                 grid: {
-                                    color: 'rgba(0,0,0,0.1)'
-                                }
-                            },
-                            y: {
-                                beginAtZero: false,
-                                grid: {
-                                    color: 'rgba(0,0,0,0.1)'
+                                    color: 'rgba(0, 150, 0, 0.2)',
+                                    borderColor: '#004400'
                                 },
                                 ticks: {
+                                    color: '#00cc00',
+                                    font: {
+                                        family: "'Consolas', 'Monaco', 'Courier New', monospace",
+                                        size: 11
+                                    }
+                                }
+                            },
+                            price: {
+                                type: 'linear',
+                                position: 'right',
+                                beginAtZero: false,
+                                grid: {
+                                    color: 'rgba(0, 150, 0, 0.2)',
+                                    borderColor: '#004400'
+                                },
+                                ticks: {
+                                    color: '#00ffaa',
+                                    font: {
+                                        family: "'Consolas', 'Monaco', 'Courier New', monospace",
+                                        size: 11
+                                    },
                                     callback: function(value) {
                                         return '$' + value.toFixed(2);
+                                    }
+                                }
+                            },
+                            volume: {
+                                type: 'linear',
+                                position: 'left',
+                                beginAtZero: true,
+                                max: function(context) {
+                                    const volumes = context.chart.data.datasets[1].data.map(d => d.y);
+                                    return Math.max(...volumes) * 4;
+                                },
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    color: '#006600',
+                                    font: {
+                                        family: "'Consolas', 'Monaco', 'Courier New', monospace",
+                                        size: 10
+                                    },
+                                    callback: function(value) {
+                                        return (value / 1000000).toFixed(1) + 'M';
                                     }
                                 }
                             }
@@ -749,6 +861,17 @@
                             tooltip: {
                                 mode: 'index',
                                 intersect: false,
+                                backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                                borderColor: '#00ff00',
+                                borderWidth: 1,
+                                titleColor: '#00ff00',
+                                bodyColor: '#00cc00',
+                                titleFont: {
+                                    family: "'Consolas', 'Monaco', 'Courier New', monospace"
+                                },
+                                bodyFont: {
+                                    family: "'Consolas', 'Monaco', 'Courier New', monospace"
+                                },
                                 callbacks: {
                                     label: function(context) {
                                         return `${symbol}: $${context.parsed.y.toFixed(2)}`;
@@ -767,6 +890,17 @@
             } catch (error) {
                 console.error('Error loading chart data:', error);
             }
+        }
+
+        function getTimeUnit(timeframe) {
+            const timeUnitMap = {
+                '1d': 'hour',
+                '1w': 'day', 
+                '1mo': 'day',
+                '3mo': 'week',
+                '1y': 'month'
+            };
+            return timeUnitMap[timeframe] || 'day';
         }
 
         function changeTimeframe(timeframe) {
@@ -808,7 +942,7 @@
                     <div class="mover-item" onclick="selectStock('${stock.symbol}')" style="cursor: pointer;">
                         <div>
                             <div class="mover-symbol">${stock.symbol}</div>
-                            <div style="font-size: 0.9rem; color: #666;">${stock.name}</div>
+                            <div style="font-size: 0.9rem; color: #006600;">${stock.name}</div>
                         </div>
                         <div class="mover-change positive">+${stock.change_percent}%</div>
                     </div>
@@ -819,7 +953,7 @@
                     <div class="mover-item" onclick="selectStock('${stock.symbol}')" style="cursor: pointer;">
                         <div>
                             <div class="mover-symbol">${stock.symbol}</div>
-                            <div style="font-size: 0.9rem; color: #666;">${stock.name}</div>
+                            <div style="font-size: 0.9rem; color: #006600;">${stock.name}</div>
                         </div>
                         <div class="mover-change negative">${stock.change_percent}%</div>
                     </div>

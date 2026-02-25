@@ -15,8 +15,21 @@ class MarketDataService:
     def get_stock_data(self, symbol: str, period: str = "1y") -> Optional[Dict]:
         """Get mock stock data"""
         try:
-            # Generate mock historical data
-            days = 252 if period == "1y" else 30
+            # Map period to days
+            period_map = {
+                "1d": 1,
+                "5d": 5, 
+                "1w": 7,
+                "1mo": 30,
+                "3mo": 90,
+                "6mo": 180,
+                "1y": 252,
+                "2y": 504,
+                "5y": 1260,
+                "max": 2520
+            }
+            
+            days = period_map.get(period, 30)  # Default to 30 days if period not found
             base_price = 100 + (hash(symbol) % 400)  # Deterministic base price per symbol
             
             prices = []

@@ -126,7 +126,7 @@ async def get_stock_detail(
 @router.get("/{symbol}/chart")
 async def get_stock_chart_data(
     symbol: str,
-    period: str = Query("1mo", regex="^(1d|5d|1mo|3mo|6mo|1y|2y|5y|10y|ytd|max)$"),
+    period: str = Query("1mo", regex="^(1d|5d|1w|1mo|3mo|6mo|1y|2y|5y|10y|ytd|max)$"),
     interval: str = Query("1d", regex="^(1m|2m|5m|15m|30m|60m|90m|1h|1d|5d|1wk|1mo|3mo)$")
 ):
     """Get stock chart data for visualization"""
