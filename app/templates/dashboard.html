@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
     <style>
         * {
             margin: 0;
@@ -1073,6 +1072,332 @@
             }
         }
 
+        function createCustomCandlestickChart(ctx, data, symbol) {
+            // Clear canvas
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            
+            // Professional candlestick chart implementation
+            const canvas = ctx.canvas;
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // Chart margins and dimensions
+            const margin = { top: 50, right: 80, bottom: 60, left: 80 };
+            const chartWidth = width - margin.left - margin.right;
+            const chartHeight = height - margin.top - margin.bottom;
+            
+            // Process OHLC data
+            const ohlcData = data.data.map(item => ({
+                date: new Date(item.timestamp),
+                open: parseFloat(item.open),
+                high: parseFloat(item.high),
+                low: parseFloat(item.low),
+                close: parseFloat(item.close),
+                volume: parseInt(item.volume)
+            }));
+            
+            // Calculate price range
+            const allPrices = [];
+            ohlcData.forEach(d => {
+                allPrices.push(d.high, d.low);
+            });
+            const minPrice = Math.min(...allPrices);
+            const maxPrice = Math.max(...allPrices);
+            const priceRange = maxPrice - minPrice;
+            const padding = priceRange * 0.05; // 5% padding
+            
+            const yMin = minPrice - padding;
+            const yMax = maxPrice + padding;
+            
+            // Set up coordinate system
+            const xScale = chartWidth / ohlcData.length;
+            const yScale = chartHeight / (yMax - yMin);
+            
+            // Helper function to get Y coordinate
+            function getY(price) {
+                return margin.top + chartHeight - ((price - yMin) * yScale);
+            }
+            
+            // Helper function to get X coordinate
+            function getX(index) {
+                return margin.left + (index * xScale) + (xScale / 2);
+            }
+            
+            // Draw grid lines
+            ctx.strokeStyle = 'rgba(226, 232, 240, 0.3)';
+            ctx.lineWidth = 0.5;
+            
+            // Horizontal grid lines (price levels)
+            const gridLines = 8;
+            for (let i = 0; i <= gridLines; i++) {
+                const price = yMin + (yMax - yMin) * (i / gridLines);
+                const y = getY(price);
+                
+                ctx.beginPath();
+                ctx.moveTo(margin.left, y);
+                ctx.lineTo(margin.left + chartWidth, y);
+                ctx.stroke();
+                
+                // Price labels
+                ctx.fillStyle = '#4a5568';
+                ctx.font = '11px "Consolas", "Monaco", "Courier New", monospace';
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('$' + price.toFixed(2), width - margin.right + 70, y);
+            }
+            
+            // Vertical grid lines (time)
+            const timeGrids = 6;
+            for (let i = 0; i <= timeGrids; i++) {
+                const index = Math.floor(ohlcData.length * (i / timeGrids));
+                if (index < ohlcData.length) {
+                    const x = getX(index);
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(x, margin.top);
+                    ctx.lineTo(x, margin.top + chartHeight);
+                    ctx.stroke();
+                    
+                    // Time labels
+                    ctx.fillStyle = '#718096';
+                    ctx.font = '11px "Consolas", "Monaco", "Courier New", monospace';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'top';
+                    const dateStr = currentTimeframe === '1d' 
+                        ? ohlcData[index].date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                        : ohlcData[index].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    ctx.fillText(dateStr, x, height - margin.bottom + 10);
+                }
+            }
+            
+            // Draw candlesticks
+            ohlcData.forEach((d, i) => {
+                const x = getX(i);
+                const candleWidth = Math.max(2, xScale * 0.7);
+                
+                const openY = getY(d.open);
+                const closeY = getY(d.close);
+                const highY = getY(d.high);
+                const lowY = getY(d.low);
+                
+                const isBullish = d.close >= d.open;
+                
+                // Colors: Professional teal for bullish, red for bearish
+                const bullishColor = '#26a69a';
+                const bearishColor = '#ef5350';
+                const color = isBullish ? bullishColor : bearishColor;
+                
+                // Draw high-low line (wick)
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(x, highY);
+                ctx.lineTo(x, lowY);
+                ctx.stroke();
+                
+                // Draw body
+                const bodyTop = Math.min(openY, closeY);
+                const bodyHeight = Math.abs(closeY - openY);
+                
+                if (isBullish) {
+                    // Bullish candle: hollow (white/transparent with colored border)
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(x - candleWidth/2, bodyTop, candleWidth, bodyHeight);
+                    ctx.strokeStyle = bullishColor;
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(x - candleWidth/2, bodyTop, candleWidth, bodyHeight);
+                } else {
+                    // Bearish candle: filled
+                    ctx.fillStyle = bearishColor;
+                    ctx.fillRect(x - candleWidth/2, bodyTop, candleWidth, bodyHeight);
+                }
+            });
+            
+            // Draw chart title
+            ctx.fillStyle = '#2d3748';
+            ctx.font = 'bold 16px "Inter", -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillText(`${symbol} - Japanese Candlestick Chart`, width / 2, 15);
+            
+            // Draw axis labels
+            ctx.fillStyle = '#4a5568';
+            ctx.font = '12px "Inter", -apple-system, BlinkMacSystemFont, sans-serif';
+            
+            // Y-axis label
+            ctx.save();
+            ctx.translate(20, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.textAlign = 'center';
+            ctx.fillText('Price ($)', 0, 0);
+            ctx.restore();
+            
+            // X-axis label
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText('Time', width / 2, height - 10);
+        }
+        
+        function createCustomOHLCChart(ctx, data, symbol) {
+            // Clear canvas
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            
+            // Professional OHLC chart implementation
+            const canvas = ctx.canvas;
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // Chart margins and dimensions
+            const margin = { top: 50, right: 80, bottom: 60, left: 80 };
+            const chartWidth = width - margin.left - margin.right;
+            const chartHeight = height - margin.top - margin.bottom;
+            
+            // Process OHLC data
+            const ohlcData = data.data.map(item => ({
+                date: new Date(item.timestamp),
+                open: parseFloat(item.open),
+                high: parseFloat(item.high),
+                low: parseFloat(item.low),
+                close: parseFloat(item.close),
+                volume: parseInt(item.volume)
+            }));
+            
+            // Calculate price range
+            const allPrices = [];
+            ohlcData.forEach(d => {
+                allPrices.push(d.high, d.low);
+            });
+            const minPrice = Math.min(...allPrices);
+            const maxPrice = Math.max(...allPrices);
+            const priceRange = maxPrice - minPrice;
+            const padding = priceRange * 0.05; // 5% padding
+            
+            const yMin = minPrice - padding;
+            const yMax = maxPrice + padding;
+            
+            // Set up coordinate system
+            const xScale = chartWidth / ohlcData.length;
+            const yScale = chartHeight / (yMax - yMin);
+            
+            // Helper function to get Y coordinate
+            function getY(price) {
+                return margin.top + chartHeight - ((price - yMin) * yScale);
+            }
+            
+            // Helper function to get X coordinate
+            function getX(index) {
+                return margin.left + (index * xScale) + (xScale / 2);
+            }
+            
+            // Draw grid lines (same as candlestick)
+            ctx.strokeStyle = 'rgba(226, 232, 240, 0.3)';
+            ctx.lineWidth = 0.5;
+            
+            // Horizontal grid lines
+            const gridLines = 8;
+            for (let i = 0; i <= gridLines; i++) {
+                const price = yMin + (yMax - yMin) * (i / gridLines);
+                const y = getY(price);
+                
+                ctx.beginPath();
+                ctx.moveTo(margin.left, y);
+                ctx.lineTo(margin.left + chartWidth, y);
+                ctx.stroke();
+                
+                // Price labels
+                ctx.fillStyle = '#4a5568';
+                ctx.font = '11px "Consolas", "Monaco", "Courier New", monospace';
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('$' + price.toFixed(2), width - margin.right + 70, y);
+            }
+            
+            // Vertical grid lines
+            const timeGrids = 6;
+            for (let i = 0; i <= timeGrids; i++) {
+                const index = Math.floor(ohlcData.length * (i / timeGrids));
+                if (index < ohlcData.length) {
+                    const x = getX(index);
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(x, margin.top);
+                    ctx.lineTo(x, margin.top + chartHeight);
+                    ctx.stroke();
+                    
+                    // Time labels
+                    ctx.fillStyle = '#718096';
+                    ctx.font = '11px "Consolas", "Monaco", "Courier New", monospace';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'top';
+                    const dateStr = currentTimeframe === '1d' 
+                        ? ohlcData[index].date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                        : ohlcData[index].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    ctx.fillText(dateStr, x, height - margin.bottom + 10);
+                }
+            }
+            
+            // Draw OHLC bars
+            ohlcData.forEach((d, i) => {
+                const x = getX(i);
+                const tickWidth = Math.max(3, xScale * 0.4);
+                
+                const openY = getY(d.open);
+                const closeY = getY(d.close);
+                const highY = getY(d.high);
+                const lowY = getY(d.low);
+                
+                const isBullish = d.close >= d.open;
+                
+                // Colors: Professional teal for bullish, red for bearish
+                const color = isBullish ? '#26a69a' : '#ef5350';
+                
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                
+                // Draw high-low vertical line
+                ctx.beginPath();
+                ctx.moveTo(x, highY);
+                ctx.lineTo(x, lowY);
+                ctx.stroke();
+                
+                // Draw open tick (left)
+                ctx.beginPath();
+                ctx.moveTo(x - tickWidth, openY);
+                ctx.lineTo(x, openY);
+                ctx.stroke();
+                
+                // Draw close tick (right)
+                ctx.beginPath();
+                ctx.moveTo(x, closeY);
+                ctx.lineTo(x + tickWidth, closeY);
+                ctx.stroke();
+            });
+            
+            // Draw chart title
+            ctx.fillStyle = '#2d3748';
+            ctx.font = 'bold 16px "Inter", -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillText(`${symbol} - OHLC Bar Chart`, width / 2, 15);
+            
+            // Draw axis labels
+            ctx.fillStyle = '#4a5568';
+            ctx.font = '12px "Inter", -apple-system, BlinkMacSystemFont, sans-serif';
+            
+            // Y-axis label
+            ctx.save();
+            ctx.translate(20, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.textAlign = 'center';
+            ctx.fillText('Price ($)', 0, 0);
+            ctx.restore();
+            
+            // X-axis label
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText('Time', width / 2, height - 10);
+        }
+
         function createChart(ctx, data, symbol, chartType) {
             const priceData = data.data.map(item => ({
                 x: new Date(item.timestamp),
@@ -1107,60 +1432,14 @@
             // Configure datasets and options based on chart type
             switch (chartType) {
                 case 'candlestick':
-                    // Professional Japanese Candlestick Chart
-                    const candlestickData = data.data.map(item => ({
-                        x: new Date(item.timestamp),
-                        o: parseFloat(item.open),
-                        h: parseFloat(item.high),
-                        l: parseFloat(item.low),
-                        c: parseFloat(item.close)
-                    }));
-
-                    datasets = [{
-                        label: `${symbol} Candlestick`,
-                        data: candlestickData,
-                        type: 'candlestick',
-                        borderColor: {
-                            up: '#26a69a',      // Professional teal for bullish
-                            down: '#ef5350'     // Professional red for bearish
-                        },
-                        backgroundColor: {
-                            up: 'rgba(38, 166, 154, 0.8)',
-                            down: 'rgba(239, 83, 80, 0.8)'
-                        },
-                        borderWidth: 1,
-                        wickColor: {
-                            up: '#26a69a',
-                            down: '#ef5350'
-                        }
-                    }];
-                    break;
+                    // Custom Professional Candlestick Chart
+                    createCustomCandlestickChart(ctx, data, symbol);
+                    return;
 
                 case 'ohlc':
-                    // Professional OHLC Bar Chart (Wall Street Style)
-                    const ohlcData = data.data.map(item => ({
-                        x: new Date(item.timestamp),
-                        o: parseFloat(item.open),
-                        h: parseFloat(item.high),
-                        l: parseFloat(item.low),
-                        c: parseFloat(item.close)
-                    }));
-
-                    datasets = [{
-                        label: `${symbol} OHLC`,
-                        data: ohlcData,
-                        type: 'ohlc',
-                        borderColor: {
-                            up: '#26a69a',
-                            down: '#ef5350'
-                        },
-                        backgroundColor: {
-                            up: 'rgba(38, 166, 154, 0.1)',
-                            down: 'rgba(239, 83, 80, 0.1)'
-                        },
-                        borderWidth: 2
-                    }];
-                    break;
+                    // Custom Professional OHLC Chart
+                    createCustomOHLCChart(ctx, data, symbol);
+                    return;
 
                 case 'line':
                     datasets = [{
