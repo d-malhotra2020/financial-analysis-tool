@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
     <style>
         * {
             margin: 0;
@@ -632,9 +633,10 @@
             <div class="chart-container">
                 <div class="chart-controls">
                     <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                        <button class="chart-type-btn active" onclick="changeChartType('line')">Line Chart</button>
+                        <button class="chart-type-btn active" onclick="changeChartType('candlestick')">Candlestick</button>
+                        <button class="chart-type-btn" onclick="changeChartType('ohlc')">OHLC Bars</button>
+                        <button class="chart-type-btn" onclick="changeChartType('line')">Line Chart</button>
                         <button class="chart-type-btn" onclick="changeChartType('area')">Area Chart</button>
-                        <button class="chart-type-btn" onclick="changeChartType('bar')">Bar Chart</button>
                         <button class="chart-type-btn" onclick="changeChartType('volume')">Volume Chart</button>
                     </div>
                     <div style="display: flex; gap: 10px;">
@@ -689,7 +691,7 @@
         let currentChart = null;
         let currentSymbol = null;
         let currentTimeframe = '1d';
-        let currentChartType = 'line';
+        let currentChartType = 'candlestick';
         let allStocks = [];
         let cachedChartData = null;
         let cachedDataKey = null; // Cache for consistent chart data
@@ -1104,6 +1106,62 @@
 
             // Configure datasets and options based on chart type
             switch (chartType) {
+                case 'candlestick':
+                    // Professional Japanese Candlestick Chart
+                    const candlestickData = data.data.map(item => ({
+                        x: new Date(item.timestamp),
+                        o: parseFloat(item.open),
+                        h: parseFloat(item.high),
+                        l: parseFloat(item.low),
+                        c: parseFloat(item.close)
+                    }));
+
+                    datasets = [{
+                        label: `${symbol} Candlestick`,
+                        data: candlestickData,
+                        type: 'candlestick',
+                        borderColor: {
+                            up: '#26a69a',      // Professional teal for bullish
+                            down: '#ef5350'     // Professional red for bearish
+                        },
+                        backgroundColor: {
+                            up: 'rgba(38, 166, 154, 0.8)',
+                            down: 'rgba(239, 83, 80, 0.8)'
+                        },
+                        borderWidth: 1,
+                        wickColor: {
+                            up: '#26a69a',
+                            down: '#ef5350'
+                        }
+                    }];
+                    break;
+
+                case 'ohlc':
+                    // Professional OHLC Bar Chart (Wall Street Style)
+                    const ohlcData = data.data.map(item => ({
+                        x: new Date(item.timestamp),
+                        o: parseFloat(item.open),
+                        h: parseFloat(item.high),
+                        l: parseFloat(item.low),
+                        c: parseFloat(item.close)
+                    }));
+
+                    datasets = [{
+                        label: `${symbol} OHLC`,
+                        data: ohlcData,
+                        type: 'ohlc',
+                        borderColor: {
+                            up: '#26a69a',
+                            down: '#ef5350'
+                        },
+                        backgroundColor: {
+                            up: 'rgba(38, 166, 154, 0.1)',
+                            down: 'rgba(239, 83, 80, 0.1)'
+                        },
+                        borderWidth: 2
+                    }];
+                    break;
+
                 case 'line':
                     datasets = [{
                         label: `${symbol} Price`,
@@ -1161,7 +1219,105 @@
             }
 
             // Add appropriate scales
-            if (chartType === 'volume') {
+            if (chartType === 'candlestick' || chartType === 'ohlc') {
+                // Professional financial chart scales with enhanced styling
+                chartOptions.scales = {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: currentTimeframe === '1d' ? 'hour' : 'day',
+                            displayFormats: {
+                                hour: 'HH:mm',
+                                day: 'MMM dd',
+                                week: 'MMM dd',
+                                month: 'MMM yyyy'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(226, 232, 240, 0.3)',
+                            borderColor: '#e2e8f0',
+                            lineWidth: 0.5
+                        },
+                        ticks: {
+                            color: '#718096',
+                            font: {
+                                family: "'Consolas', 'Monaco', 'Courier New', monospace",
+                                size: 11
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: false,
+                        position: 'right', // Professional style - price scale on right
+                        grid: {
+                            color: 'rgba(226, 232, 240, 0.3)',
+                            borderColor: '#e2e8f0',
+                            lineWidth: 0.5
+                        },
+                        ticks: {
+                            color: '#4a5568',
+                            font: {
+                                family: "'Consolas', 'Monaco', 'Courier New', monospace",
+                                size: 10,
+                                weight: '500'
+                            },
+                            callback: function(value) {
+                                return '$' + value.toFixed(2);
+                            },
+                            padding: 8
+                        },
+                        title: {
+                            display: true,
+                            text: 'Price ($)',
+                            color: '#4a5568',
+                            font: {
+                                family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                                size: 12,
+                                weight: '600'
+                            }
+                        }
+                    }
+                };
+                
+                // Enhanced tooltips for professional candlestick/OHLC
+                chartOptions.plugins.tooltip = {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    borderColor: '#e2e8f0',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    padding: 12,
+                    displayColors: false,
+                    titleFont: {
+                        family: "'Consolas', 'Monaco', 'Courier New', monospace",
+                        size: 12,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        family: "'Consolas', 'Monaco', 'Courier New', monospace",
+                        size: 11
+                    },
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            const date = new Date(tooltipItems[0].parsed.x);
+                            return date.toLocaleDateString() + ' ' + (currentTimeframe === '1d' ? date.toLocaleTimeString() : '');
+                        },
+                        label: function(context) {
+                            const dataPoint = context.raw;
+                            return [
+                                `Open: $${dataPoint.o.toFixed(2)}`,
+                                `High: $${dataPoint.h.toFixed(2)}`,
+                                `Low: $${dataPoint.l.toFixed(2)}`,
+                                `Close: $${dataPoint.c.toFixed(2)}`,
+                                `Change: ${dataPoint.c >= dataPoint.o ? '+' : ''}${(dataPoint.c - dataPoint.o).toFixed(2)} (${(((dataPoint.c - dataPoint.o) / dataPoint.o) * 100).toFixed(2)}%)`
+                            ];
+                        }
+                    }
+                };
+            } else if (chartType === 'volume') {
                 chartOptions.scales = {
                     x: {
                         type: 'time',
@@ -1215,8 +1371,22 @@
                 };
             }
 
+            // Determine Chart.js chart type
+            let chartjsType;
+            if (chartType === 'candlestick') {
+                chartjsType = 'candlestick';
+            } else if (chartType === 'ohlc') {
+                chartjsType = 'ohlc';
+            } else if (chartType === 'area') {
+                chartjsType = 'line';
+            } else if (chartType === 'volume') {
+                chartjsType = 'bar';
+            } else {
+                chartjsType = chartType;
+            }
+
             currentChart = new Chart(ctx, {
-                type: chartType === 'area' ? 'line' : (chartType === 'volume' ? 'bar' : chartType),
+                type: chartjsType,
                 data: { datasets },
                 options: chartOptions
             });
@@ -1224,6 +1394,8 @@
 
         function getChartTitle(chartType) {
             const titles = {
+                'candlestick': 'Japanese Candlestick Chart',
+                'ohlc': 'OHLC Bar Chart',
                 'line': 'Price Movement',
                 'area': 'Price Trend',
                 'bar': 'Daily Price Changes', 
