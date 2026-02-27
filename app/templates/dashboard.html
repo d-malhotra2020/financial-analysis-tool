@@ -639,11 +639,13 @@
                         <button class="chart-type-btn" onclick="changeChartType('volume')">Volume Chart</button>
                     </div>
                     <div style="display: flex; gap: 10px;">
-                        <button class="time-btn active" onclick="changeTimeframe('1d')">1D</button>
+                        <button class="time-btn" onclick="changeTimeframe('1d')">1D</button>
                         <button class="time-btn" onclick="changeTimeframe('1w')">1W</button>
                         <button class="time-btn" onclick="changeTimeframe('1mo')">1M</button>
                         <button class="time-btn" onclick="changeTimeframe('3mo')">3M</button>
-                        <button class="time-btn" onclick="changeTimeframe('1y')">1Y</button>
+                        <button class="time-btn active" onclick="changeTimeframe('1y')">1Y</button>
+                        <button class="time-btn" onclick="changeTimeframe('5y')">5Y</button>
+                        <button class="time-btn" onclick="changeTimeframe('max')">All Time</button>
                     </div>
                 </div>
                 <div class="chart-wrapper">
@@ -689,7 +691,7 @@
     <script>
         let currentChart = null;
         let currentSymbol = null;
-        let currentTimeframe = '1d';
+        let currentTimeframe = '1y';
         let currentChartType = 'candlestick';
         let allStocks = [];
         let cachedChartData = null;
@@ -1128,7 +1130,10 @@
             const maxDataPoints = currentTimeframe === '1d' ? 13 : 
                                  currentTimeframe === '1w' ? 7 : 
                                  currentTimeframe === '1mo' ? 30 : 
-                                 currentTimeframe === '3mo' ? 90 : 252;
+                                 currentTimeframe === '3mo' ? 90 : 
+                                 currentTimeframe === '1y' ? 252 :
+                                 currentTimeframe === '5y' ? 1260 :
+                                 currentTimeframe === 'max' ? 2520 : 252;
             
             const displayData = ohlcData.length > maxDataPoints 
                 ? ohlcData.slice(-maxDataPoints) 
@@ -1190,7 +1195,9 @@
                     ctx.textBaseline = 'top';
                     const dateStr = currentTimeframe === '1d' 
                         ? displayData[index].date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-                        : displayData[index].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                        : currentTimeframe === '1w' || currentTimeframe === '1mo'
+                        ? displayData[index].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                        : displayData[index].date.toLocaleDateString('en-US', { year: '2-digit', month: 'short' });
                     ctx.fillText(dateStr, x, height - margin.bottom + 10);
                 }
             }
@@ -1319,7 +1326,10 @@
             const maxDataPoints = currentTimeframe === '1d' ? 13 : 
                                  currentTimeframe === '1w' ? 7 : 
                                  currentTimeframe === '1mo' ? 30 : 
-                                 currentTimeframe === '3mo' ? 90 : 252;
+                                 currentTimeframe === '3mo' ? 90 : 
+                                 currentTimeframe === '1y' ? 252 :
+                                 currentTimeframe === '5y' ? 1260 :
+                                 currentTimeframe === 'max' ? 2520 : 252;
             
             const displayData = ohlcData.length > maxDataPoints 
                 ? ohlcData.slice(-maxDataPoints) 
@@ -1381,7 +1391,9 @@
                     ctx.textBaseline = 'top';
                     const dateStr = currentTimeframe === '1d' 
                         ? displayData[index].date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-                        : displayData[index].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                        : currentTimeframe === '1w' || currentTimeframe === '1mo'
+                        ? displayData[index].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                        : displayData[index].date.toLocaleDateString('en-US', { year: '2-digit', month: 'short' });
                     ctx.fillText(dateStr, x, height - margin.bottom + 10);
                 }
             }
@@ -1554,7 +1566,9 @@
                     x: {
                         type: 'time',
                         time: {
-                            unit: currentTimeframe === '1d' ? 'hour' : 'day',
+                            unit: currentTimeframe === '1d' ? 'hour' : 
+                                  currentTimeframe === '1w' || currentTimeframe === '1mo' ? 'day' :
+                                  'month',
                             displayFormats: {
                                 hour: 'HH:mm',
                                 day: 'MMM dd',
@@ -1651,7 +1665,9 @@
                     x: {
                         type: 'time',
                         time: {
-                            unit: currentTimeframe === '1d' ? 'hour' : 'day'
+                            unit: currentTimeframe === '1d' ? 'hour' : 
+                                  currentTimeframe === '1w' || currentTimeframe === '1mo' ? 'day' :
+                                  'month'
                         },
                         grid: {
                             color: 'rgba(226, 232, 240, 0.5)',
@@ -1677,7 +1693,9 @@
                     x: {
                         type: 'time',
                         time: {
-                            unit: currentTimeframe === '1d' ? 'hour' : 'day'
+                            unit: currentTimeframe === '1d' ? 'hour' : 
+                                  currentTimeframe === '1w' || currentTimeframe === '1mo' ? 'day' :
+                                  'month'
                         },
                         grid: {
                             color: 'rgba(226, 232, 240, 0.5)',
