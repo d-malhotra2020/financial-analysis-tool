@@ -605,7 +605,7 @@
     <div class="container">
         <div class="header">
             <h1>Financial Analysis Dashboard</h1>
-            <p>Comprehensive NYSE, NASDAQ, S&P 500 & DOW data with interactive candlestick charts</p>
+            <p>Comprehensive NYSE, NASDAQ, S&P 500 & DOW data with interactive financial charts</p>
         </div>
 
         <div class="search-section">
@@ -633,8 +633,10 @@
             <div class="chart-container">
                 <div class="chart-controls">
                     <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                        <button class="chart-type-btn active" onclick="changeChartType('candlestick')">Candlestick</button>
-                        <button class="chart-type-btn" onclick="changeChartType('line')">Line Chart</button>
+                        <button class="chart-type-btn active" onclick="changeChartType('line')">Line Chart</button>
+                        <button class="chart-type-btn" onclick="changeChartType('area')">Area Chart</button>
+                        <button class="chart-type-btn" onclick="changeChartType('bar')">Bar Chart</button>
+                        <button class="chart-type-btn" onclick="changeChartType('volume')">Volume Chart</button>
                     </div>
                     <div style="display: flex; gap: 10px;">
                         <button class="time-btn active" onclick="changeTimeframe('1d')">1D</button>
@@ -690,7 +692,7 @@
         let currentTradingViewChart = null;
         let currentSymbol = null;
         let currentTimeframe = '1d';
-        let currentChartType = 'candlestick';
+        let currentChartType = 'line';
         let allStocks = [];
         let cachedChartData = null;
         let cachedDataKey = null; // Cache for consistent chart data
@@ -1033,7 +1035,7 @@
                         <span class="detail-value">${analysis.rsi}</span>
                     </div>
                     <div class="detail-item">
-                        <span class="detail-label">Recommendation:</span>
+                        <span class="detail-label">Recommendation: </span>
                         <span class="detail-value ${analysis.recommendation === 'BUY' ? 'positive' : analysis.recommendation === 'SELL' ? 'negative' : ''}">${analysis.recommendation}</span>
                     </div>
                 </div>
@@ -1067,43 +1069,181 @@
                     currentTradingViewChart = null;
                 }
 
-                // Show/hide appropriate containers
+                // Show canvas and create chart based on type
                 const chartCanvas = document.getElementById('stockChart');
                 const tradingViewContainer = document.getElementById('tradingViewChart');
                 
-                if (currentChartType === 'candlestick') {
-                    chartCanvas.style.display = 'none';
-                    tradingViewContainer.style.display = 'block';
-                    createTradingViewChart(data, symbol);
-                } else {
-                    chartCanvas.style.display = 'block';
-                    tradingViewContainer.style.display = 'none';
-                    const ctx = chartCanvas.getContext('2d');
-                    createLineChart(ctx, data, symbol);
-                }
+                chartCanvas.style.display = 'block';
+                tradingViewContainer.style.display = 'none';
+                
+                const ctx = chartCanvas.getContext('2d');
+                createChart(ctx, data, symbol, currentChartType);
 
             } catch (error) {
                 console.error('Error loading chart data:', error);
             }
         }
 
-        function createTradingViewChart(data, symbol) {
-            try {
-                const container = document.getElementById('tradingViewChart');
-                
-                // Clear container
-                container.innerHTML = '';
-                
-                // Create chart with proper configuration
-                const isMobile = window.innerWidth <= 768;
-                const chartHeight = isMobile ? (window.innerWidth <= 480 ? 250 : 300) : 400;
-                
-                currentTradingViewChart = LightweightCharts.createChart(container, {
-                    width: container.clientWidth || 800,
-                    height: chartHeight,
-                    layout: {
-                        background: { type: 'solid', color: '#ffffff' },
-                        textColor: '#374151',
+        function createChart(ctx, data, symbol, chartType) {
+            const priceData = data.data.map(item => ({
+                x: new Date(item.timestamp),
+                y: item.close
+            }));
+
+            const volumeData = data.data.map(item => ({
+                x: new Date(item.timestamp),
+                y: item.volume
+            }));
+
+            let datasets = [];
+            let chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: `${symbol} - ${getChartTitle(chartType)}`
+                    },
+                    legend: {
+                        display: chartType !== 'volume'
+                    }
+                },
+                scales: {}
+            };
+
+            // Configure datasets and options based on chart type
+            switch (chartType) {
+                case 'line':
+                    datasets = [{
+                        label: `${symbol} Price`,
+                        data: priceData,
+                        borderColor: '#3182ce',
+                        backgroundColor: 'rgba(49, 130, 206, 0.1)',
+                        fill: false,
+                        tension: 0.1,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        borderWidth: 3
+                    }];
+                    break;
+
+                case 'area':
+                    datasets = [{
+                        label: `${symbol} Price`,
+                        data: priceData,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        borderWidth: 2
+                    }];
+                    break;
+
+                case 'bar':
+                    datasets = [{
+                        label: `${symbol} Daily Change`,
+                        data: data.data.map(item => ({
+                            x: new Date(item.timestamp),
+                            y: item.close - item.open
+                        })),
+                        backgroundColor: data.data.map(item => 
+                            item.close >= item.open ? 'rgba(16, 185, 129, 0.7)' : 'rgba(239, 68, 68, 0.7)'
+                        ),
+                        borderColor: data.data.map(item => 
+                            item.close >= item.open ? '#10b981' : '#ef4444'
+                        ),
+                        borderWidth: 1
+                    }];
+                    break;
+
+                case 'volume':
+                    datasets = [{
+                        label: `${symbol} Volume`,
+                        data: volumeData,
+                        backgroundColor: 'rgba(99, 102, 241, 0.6)',
+                        borderColor: '#6366f1',
+                        borderWidth: 1
+                    }];
+                    break;
+            }
+
+            // Add appropriate scales
+            if (chartType === 'volume') {
+                chartOptions.scales = {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: currentTimeframe === '1d' ? 'hour' : 'day'
+                        },
+                        grid: {
+                            color: 'rgba(226, 232, 240, 0.5)',
+                            borderColor: '#e2e8f0'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(226, 232, 240, 0.5)',
+                            borderColor: '#e2e8f0'
+                        },
+                        ticks: {
+                            color: '#718096',
+                            callback: function(value) {
+                                return (value / 1000000).toFixed(1) + 'M';
+                            }
+                        }
+                    }
+                };
+            } else {
+                chartOptions.scales = {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: currentTimeframe === '1d' ? 'hour' : 'day'
+                        },
+                        grid: {
+                            color: 'rgba(226, 232, 240, 0.5)',
+                            borderColor: '#e2e8f0'
+                        }
+                    },
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            color: 'rgba(226, 232, 240, 0.5)',
+                            borderColor: '#e2e8f0'
+                        },
+                        ticks: {
+                            color: '#718096',
+                            callback: function(value) {
+                                return '$' + value.toFixed(2);
+                            }
+                        }
+                    }
+                };
+            }
+
+            currentChart = new Chart(ctx, {
+                type: chartType === 'area' ? 'line' : (chartType === 'volume' ? 'bar' : chartType),
+                data: { datasets },
+                options: chartOptions
+            });
+        }
+
+        function getChartTitle(chartType) {
+            const titles = {
+                'line': 'Price Movement',
+                'area': 'Price Trend',
+                'bar': 'Daily Price Changes', 
+                'volume': 'Trading Volume'
+            };
+            return titles[chartType] || 'Price Chart';
+        }
                         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
                         fontSize: 12
                     },
