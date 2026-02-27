@@ -1073,13 +1073,28 @@
         }
 
         function createCustomCandlestickChart(ctx, data, symbol) {
+            // Setup high-DPI canvas
+            const canvas = ctx.canvas;
+            const rect = canvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            
+            // Set actual canvas size in memory
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            
+            // Scale canvas back down using CSS
+            canvas.style.width = rect.width + 'px';
+            canvas.style.height = rect.height + 'px';
+            
+            // Scale the drawing context so everything will work at the higher DPI
+            ctx.scale(dpr, dpr);
+            
             // Clear canvas
-            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.clearRect(0, 0, rect.width, rect.height);
             
             // Professional candlestick chart implementation
-            const canvas = ctx.canvas;
-            const width = canvas.width;
-            const height = canvas.height;
+            const width = rect.width;
+            const height = rect.height;
             
             // Chart margins and dimensions
             const margin = { top: 50, right: 80, bottom: 60, left: 80 };
@@ -1109,8 +1124,18 @@
             const yMin = minPrice - padding;
             const yMax = maxPrice + padding;
             
+            // Limit data points for better visualization
+            const maxDataPoints = currentTimeframe === '1d' ? 13 : 
+                                 currentTimeframe === '1w' ? 7 : 
+                                 currentTimeframe === '1mo' ? 30 : 
+                                 currentTimeframe === '3mo' ? 90 : 252;
+            
+            const displayData = ohlcData.length > maxDataPoints 
+                ? ohlcData.slice(-maxDataPoints) 
+                : ohlcData;
+            
             // Set up coordinate system
-            const xScale = chartWidth / ohlcData.length;
+            const xScale = chartWidth / displayData.length;
             const yScale = chartHeight / (yMax - yMin);
             
             // Helper function to get Y coordinate
@@ -1147,10 +1172,10 @@
             }
             
             // Vertical grid lines (time)
-            const timeGrids = 6;
+            const timeGrids = Math.min(6, displayData.length - 1);
             for (let i = 0; i <= timeGrids; i++) {
-                const index = Math.floor(ohlcData.length * (i / timeGrids));
-                if (index < ohlcData.length) {
+                const index = Math.floor(displayData.length * (i / timeGrids));
+                if (index < displayData.length) {
                     const x = getX(index);
                     
                     ctx.beginPath();
@@ -1164,14 +1189,14 @@
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'top';
                     const dateStr = currentTimeframe === '1d' 
-                        ? ohlcData[index].date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-                        : ohlcData[index].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                        ? displayData[index].date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                        : displayData[index].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                     ctx.fillText(dateStr, x, height - margin.bottom + 10);
                 }
             }
             
             // Draw candlesticks
-            ohlcData.forEach((d, i) => {
+            displayData.forEach((d, i) => {
                 const x = getX(i);
                 const candleWidth = Math.max(2, xScale * 0.7);
                 
@@ -1239,13 +1264,28 @@
         }
         
         function createCustomOHLCChart(ctx, data, symbol) {
+            // Setup high-DPI canvas
+            const canvas = ctx.canvas;
+            const rect = canvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            
+            // Set actual canvas size in memory
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            
+            // Scale canvas back down using CSS
+            canvas.style.width = rect.width + 'px';
+            canvas.style.height = rect.height + 'px';
+            
+            // Scale the drawing context so everything will work at the higher DPI
+            ctx.scale(dpr, dpr);
+            
             // Clear canvas
-            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.clearRect(0, 0, rect.width, rect.height);
             
             // Professional OHLC chart implementation
-            const canvas = ctx.canvas;
-            const width = canvas.width;
-            const height = canvas.height;
+            const width = rect.width;
+            const height = rect.height;
             
             // Chart margins and dimensions
             const margin = { top: 50, right: 80, bottom: 60, left: 80 };
@@ -1275,8 +1315,18 @@
             const yMin = minPrice - padding;
             const yMax = maxPrice + padding;
             
+            // Limit data points for better visualization
+            const maxDataPoints = currentTimeframe === '1d' ? 13 : 
+                                 currentTimeframe === '1w' ? 7 : 
+                                 currentTimeframe === '1mo' ? 30 : 
+                                 currentTimeframe === '3mo' ? 90 : 252;
+            
+            const displayData = ohlcData.length > maxDataPoints 
+                ? ohlcData.slice(-maxDataPoints) 
+                : ohlcData;
+            
             // Set up coordinate system
-            const xScale = chartWidth / ohlcData.length;
+            const xScale = chartWidth / displayData.length;
             const yScale = chartHeight / (yMax - yMin);
             
             // Helper function to get Y coordinate
@@ -1313,10 +1363,10 @@
             }
             
             // Vertical grid lines
-            const timeGrids = 6;
+            const timeGrids = Math.min(6, displayData.length - 1);
             for (let i = 0; i <= timeGrids; i++) {
-                const index = Math.floor(ohlcData.length * (i / timeGrids));
-                if (index < ohlcData.length) {
+                const index = Math.floor(displayData.length * (i / timeGrids));
+                if (index < displayData.length) {
                     const x = getX(index);
                     
                     ctx.beginPath();
@@ -1330,14 +1380,14 @@
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'top';
                     const dateStr = currentTimeframe === '1d' 
-                        ? ohlcData[index].date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-                        : ohlcData[index].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                        ? displayData[index].date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                        : displayData[index].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                     ctx.fillText(dateStr, x, height - margin.bottom + 10);
                 }
             }
             
             // Draw OHLC bars
-            ohlcData.forEach((d, i) => {
+            displayData.forEach((d, i) => {
                 const x = getX(i);
                 const tickWidth = Math.max(3, xScale * 0.4);
                 
