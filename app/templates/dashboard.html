@@ -977,8 +977,17 @@
         function displayStockInfo(data) {
             const price = data.latest_price;
             const analysis = data.latest_analysis;
-            const changePercent = analysis.recommendation === 'BUY' ? '+2.45' : analysis.recommendation === 'SELL' ? '-1.85' : '+0.75';
-            const changeClass = changePercent.startsWith('+') ? 'positive' : 'negative';
+            
+            // Calculate real growth rate from price data
+            const currentPrice = price.close_price;
+            const openPrice = price.open_price;
+            const dailyChange = currentPrice - openPrice;
+            const dailyChangePercent = ((dailyChange / openPrice) * 100);
+            
+            const changePercent = dailyChangePercent >= 0 ? 
+                `+${Math.abs(dailyChangePercent).toFixed(2)}` : 
+                `-${Math.abs(dailyChangePercent).toFixed(2)}`;
+            const changeClass = dailyChangePercent >= 0 ? 'positive' : 'negative';
 
             document.getElementById('stockInfoContent').innerHTML = `
                 <div class="stock-header">
@@ -989,7 +998,7 @@
                     <div class="stock-price">
                         <div class="current-price">$${price.close_price}</div>
                         <div class="price-change ${changeClass}">
-                            ${changePercent}% ${changePercent.startsWith('+') ? '↗' : '↘'}
+                            ${dailyChange >= 0 ? '+' : ''}${dailyChange.toFixed(2)} (${changePercent}%) ${dailyChange >= 0 ? '↗' : '↘'}
                         </div>
                     </div>
                 </div>
