@@ -310,7 +310,7 @@
             margin-bottom: 20px;
         }
         
-        #stockChart {
+        #tradingViewChart, #stockChart {
             width: 100%;
             height: 100%;
         }
@@ -1060,6 +1060,7 @@
                     currentChart.destroy();
                     currentChart = null;
                 }
+                
 
                 // Create chart on canvas
                 const chartCanvas = document.getElementById('stockChart');
@@ -1230,6 +1231,531 @@
                 'volume': 'Trading Volume'
             };
             return titles[chartType] || 'Price Chart';
+        }
+
+        function changeTimeframe(timeframe) {
+            currentTimeframe = timeframe;
+            
+            // Update button states
+            document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (currentSymbol) {
+                loadStockChart(currentSymbol, timeframe);
+            }
+        }
+
+        function changeChartType(chartType) {
+            currentChartType = chartType;
+            
+            // Update button states
+            document.querySelectorAll('.chart-type-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (currentSymbol) {
+                loadStockChart(currentSymbol, currentTimeframe);
+            }
+        }
+
+        async function loadMarketOverview() {
+            try {
+                // Load S&P 500 overview
+                const sp500Response = await fetch('/api/v1/sp500/');
+                const sp500Data = await sp500Response.json();
+                
+                // Update market indices
+                const indices = sp500Data.market_indices;
+                document.getElementById('sp500Value').textContent = indices['S&P 500'].value.toFixed(2);
+                document.getElementById('dowValue').textContent = indices['Dow Jones'].value.toFixed(0);
+                document.getElementById('nasdaqValue').textContent = indices['NASDAQ'].value.toFixed(2);
+                document.getElementById('advancingStocks').textContent = sp500Data.market_summary.advancing_stocks;
+
+                // Load top gainers and losers
+                const [gainersResponse, losersResponse] = await Promise.all([
+                    fetch('/api/v1/sp500/gainers'),
+                    fetch('/api/v1/sp500/losers')
+                ]);
+
+                const gainersData = await gainersResponse.json();
+                const losersData = await losersResponse.json();
+
+                // Display top gainers
+                document.getElementById('topGainers').innerHTML = gainersData.gainers.slice(0, 5).map(stock => `
+                    <div class="mover-item" onclick="selectStock('${stock.symbol}')" style="cursor: pointer;">
+                        <div>
+                            <div class="mover-symbol">${stock.symbol}</div>
+                            <div style="font-size: 0.9rem; color: #006600;">${stock.name}</div>
+                        </div>
+                        <div class="mover-change positive">+${stock.change_percent}%</div>
+                    </div>
+                `).join('');
+
+                // Display top losers
+                document.getElementById('topLosers').innerHTML = losersData.losers.slice(0, 5).map(stock => `
+                    <div class="mover-item" onclick="selectStock('${stock.symbol}')" style="cursor: pointer;">
+                        <div>
+                            <div class="mover-symbol">${stock.symbol}</div>
+                            <div style="font-size: 0.9rem; color: #006600;">${stock.name}</div>
+                        </div>
+                        <div class="mover-change negative">${stock.change_percent}%</div>
+                    </div>
+                `).join('');
+                        fontSize: 12
+                    },
+                    grid: {
+                        vertLines: { 
+                            color: 'rgba(226, 232, 240, 0.5)',
+                            style: 1,
+                            visible: true 
+                        },
+                        horzLines: { 
+                            color: 'rgba(226, 232, 240, 0.5)',
+                            style: 1,
+                            visible: true 
+                        }
+                    },
+                    crosshair: {
+                        mode: LightweightCharts.CrosshairMode.Normal,
+                        vertLine: { 
+                            color: '#00ff00', 
+                            width: 1,
+                            style: 3 
+                        },
+                        horzLine: { 
+                            color: '#00ff00', 
+                            width: 1,
+                            style: 3 
+                        }
+                    },
+                    rightPriceScale: {
+                        borderColor: '#e2e8f0',
+                        textColor: '#718096',
+                        entireTextOnly: false
+                    },
+                    timeScale: {
+                        borderColor: '#e2e8f0',
+                        textColor: '#718096',
+                        timeVisible: currentTimeframe === '1d',
+                        secondsVisible: false,
+                        fixLeftEdge: false,
+                        fixRightEdge: false,
+                        lockVisibleTimeRangeOnResize: true
+                    },
+                    handleScroll: {
+                        mouseWheel: true,
+                        pressedMouseMove: true,
+                        horzTouchDrag: true,
+                        vertTouchDrag: true
+                    },
+                    handleScale: {
+                        axisPressedMouseMove: true,
+                        mouseWheel: true,
+                        pinch: true
+                    }
+                });
+
+                // Add candlestick series with proper red/green colors
+                const candlestickSeries = currentTradingViewChart.addCandlestickSeries({
+                    upColor: '#26a69a',        // Professional teal for bullish
+                    downColor: '#ef5350',      // Professional red for bearish
+                    borderVisible: true,
+                    wickUpColor: '#26a69a',    // Teal wicks for bullish
+                    wickDownColor: '#ef5350',  // Red wicks for bearish  
+                    borderUpColor: '#26a69a',  // Teal border for bullish
+                    borderDownColor: '#ef5350', // Red border for bearish
+                    wickVisible: true,
+                    priceFormat: {
+                        type: 'price',
+                        precision: 2,
+                        minMove: 0.01
+                    }
+                });
+
+                // Convert and format data correctly
+                const candlestickData = data.data.map(item => {
+                    // Handle timestamp conversion properly
+                    let time;
+                    if (currentTimeframe === '1d') {
+                        // For intraday, convert to UNIX timestamp
+                        time = Math.floor(new Date(item.timestamp).getTime() / 1000);
+                    } else {
+                        // For daily data, use date string format
+                        time = item.timestamp;
+                    }
+                    
+                    return {
+                        time: time,
+                        open: parseFloat(item.open),
+                        high: parseFloat(item.high),
+                        low: parseFloat(item.low),
+                        close: parseFloat(item.close)
+                    };
+                });
+
+                candlestickSeries.setData(candlestickData);
+
+                // Add volume series
+                const volumeSeries = currentTradingViewChart.addHistogramSeries({
+                    color: 'rgba(148, 163, 184, 0.5)',
+                    priceFormat: {
+                        type: 'volume'
+                    },
+                    priceScaleId: 'left',
+                    scaleMargins: {
+                        top: 0.7,
+                        bottom: 0.0
+                    }
+                });
+
+                const volumeData = data.data.map(item => {
+                    let time;
+                    if (currentTimeframe === '1d') {
+                        time = Math.floor(new Date(item.timestamp).getTime() / 1000);
+                    } else {
+                        time = item.timestamp;
+                    }
+                    
+                    const isUp = parseFloat(item.close) >= parseFloat(item.open);
+                    return {
+                        time: time,
+                        value: parseInt(item.volume),
+                        color: isUp ? 'rgba(38, 166, 154, 0.6)' : 'rgba(239, 83, 80, 0.6)'
+                    };
+                });
+
+                volumeSeries.setData(volumeData);
+
+                // Fit content and handle resize
+                currentTradingViewChart.timeScale().fitContent();
+                
+                // Handle window resize
+                const resizeObserver = new ResizeObserver(entries => {
+                    if (currentTradingViewChart) {
+                        currentTradingViewChart.applyOptions({
+                            width: container.clientWidth
+                        });
+                    }
+                });
+                resizeObserver.observe(container);
+
+                console.log('TradingView chart created successfully for', symbol);
+
+            } catch (error) {
+                console.error('Error creating TradingView chart:', error);
+                // Fallback to simple chart display
+                document.getElementById('stockChart').style.display = 'block';
+                document.getElementById('tradingViewChart').style.display = 'none';
+                const ctx = document.getElementById('stockChart').getContext('2d');
+                createLineChart(ctx, data, symbol);
+            }
+        }
+
+        async function createLineChart(ctx, data, symbol) {
+            const priceData = data.data.map(item => ({
+                x: new Date(item.timestamp),
+                y: item.close
+            }));
+
+            const volumeData = data.data.map(item => ({
+                x: new Date(item.timestamp),
+                y: item.volume
+            }));
+
+            currentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: `${symbol} Price`,
+                        data: priceData,
+                        borderColor: '#3182ce',
+                        backgroundColor: 'rgba(49, 130, 206, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        borderWidth: 3,
+                        pointBorderColor: '#00ffaa',
+                        pointBackgroundColor: '#00ffaa',
+                        yAxisID: 'price'
+                    }, {
+                        label: 'Volume',
+                        type: 'bar',
+                        data: volumeData,
+                        backgroundColor: 'rgba(0, 100, 0, 0.3)',
+                        borderColor: 'rgba(0, 150, 0, 0.5)',
+                        borderWidth: 1,
+                        yAxisID: 'volume',
+                        barPercentage: 0.8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    unit: getTimeUnit(currentTimeframe),
+                                    displayFormats: {
+                                        hour: 'HH:mm',
+                                        day: 'MMM dd',
+                                        week: 'MMM dd',
+                                        month: 'MMM yyyy'
+                                    }
+                                },
+                                grid: {
+                                    color: 'rgba(226, 232, 240, 0.5)',
+                                    borderColor: '#e2e8f0'
+                                },
+                                ticks: {
+                                    color: '#718096',
+                                    font: {
+                                        family: "'Consolas', 'Monaco', 'Courier New', monospace",
+                                        size: 11
+                                    }
+                                }
+                            },
+                            price: {
+                                type: 'linear',
+                                position: 'right',
+                                beginAtZero: false,
+                                grid: {
+                                    color: 'rgba(226, 232, 240, 0.5)',
+                                    borderColor: '#e2e8f0'
+                                },
+                                ticks: {
+                                    color: '#718096',
+                                    font: {
+                                        family: "'Consolas', 'Monaco', 'Courier New', monospace",
+                                        size: 11
+                                    },
+                                    callback: function(value) {
+                                        return '$' + value.toFixed(2);
+                                    }
+                                }
+                            },
+                            volume: {
+                                type: 'linear',
+                                position: 'left',
+                                beginAtZero: true,
+                                max: function(context) {
+                                    const volumes = context.chart.data.datasets[1].data.map(d => d.y);
+                                    return Math.max(...volumes) * 4;
+                                },
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    color: '#006600',
+                                    font: {
+                                        family: "'Consolas', 'Monaco', 'Courier New', monospace",
+                                        size: 10
+                                    },
+                                    callback: function(value) {
+                                        return (value / 1000000).toFixed(1) + 'M';
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                borderColor: '#e2e8f0',
+                                borderWidth: 1,
+                                titleColor: '#2d3748',
+                                bodyColor: '#4a5568',
+                                titleFont: {
+                                    family: "'Consolas', 'Monaco', 'Courier New', monospace"
+                                },
+                                bodyFont: {
+                                    family: "'Consolas', 'Monaco', 'Courier New', monospace"
+                                },
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${symbol}: $${context.parsed.y.toFixed(2)}`;
+                                    }
+                                }
+                            }
+                        },
+                        interaction: {
+                            mode: 'nearest',
+                            axis: 'x',
+                            intersect: false
+                        }
+                    }
+                });
+        }
+
+        async function createLineChart(ctx, data, symbol) {
+            const priceData = data.data.map(item => ({
+                x: new Date(item.timestamp),
+                y: item.close
+            }));
+
+            const volumeData = data.data.map(item => ({
+                x: new Date(item.timestamp),
+                y: item.volume
+            }));
+
+            currentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: `${symbol} Price`,
+                        data: priceData,
+                        borderColor: '#3182ce',
+                        backgroundColor: 'rgba(49, 130, 206, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        borderWidth: 3,
+                        pointBorderColor: '#00ffaa',
+                        pointBackgroundColor: '#00ffaa',
+                        yAxisID: 'price'
+                    }, {
+                        label: 'Volume',
+                        type: 'bar',
+                        data: volumeData,
+                        backgroundColor: 'rgba(0, 100, 0, 0.3)',
+                        borderColor: 'rgba(0, 150, 0, 0.5)',
+                        borderWidth: 1,
+                        yAxisID: 'volume',
+                        barPercentage: 0.8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: getTimeUnit(currentTimeframe),
+                                displayFormats: {
+                                    hour: 'MMM dd HH:mm',
+                                    day: 'MMM dd',
+                                    week: 'MMM dd',
+                                    month: 'MMM yyyy'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(226, 232, 240, 0.5)',
+                                borderColor: '#e2e8f0'
+                            },
+                            ticks: {
+                                color: '#718096',
+                                font: {
+                                    family: "'Consolas', 'Monaco', 'Courier New', monospace",
+                                    size: 11
+                                }
+                            }
+                        },
+                        price: {
+                            type: 'linear',
+                            position: 'right',
+                            beginAtZero: false,
+                            grid: {
+                                color: 'rgba(226, 232, 240, 0.5)',
+                                borderColor: '#e2e8f0'
+                            },
+                            ticks: {
+                                color: '#718096',
+                                font: {
+                                    family: "'Consolas', 'Monaco', 'Courier New', monospace",
+                                    size: 11
+                                },
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            }
+                        },
+                        volume: {
+                            type: 'linear',
+                            position: 'left',
+                            beginAtZero: true,
+                            max: function(context) {
+                                const volumes = context.chart.data.datasets[1].data.map(d => d.y);
+                                return Math.max(...volumes) * 4;
+                            },
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#006600',
+                                font: {
+                                    family: "'Consolas', 'Monaco', 'Courier New', monospace",
+                                    size: 10
+                                },
+                                callback: function(value) {
+                                    return (value / 1000000).toFixed(1) + 'M';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                            borderColor: '#00ff00',
+                            borderWidth: 1,
+                            titleColor: '#00ff00',
+                            bodyColor: '#00cc00',
+                            titleFont: {
+                                family: "'Consolas', 'Monaco', 'Courier New', monospace"
+                            },
+                            bodyFont: {
+                                family: "'Consolas', 'Monaco', 'Courier New', monospace"
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    const dataIndex = context.dataIndex;
+                                    const dataPoint = data.data[dataIndex];
+                                    if (context.dataset.label.includes('Close')) {
+                                        return [
+                                            `${symbol} OHLC:`,
+                                            `Open: $${dataPoint.open}`,
+                                            `High: $${dataPoint.high}`, 
+                                            `Low: $${dataPoint.low}`,
+                                            `Close: $${dataPoint.close}`,
+                                            `Volume: ${dataPoint.volume.toLocaleString()}`
+                                        ];
+                                    } else if (context.dataset.label.includes('Volume')) {
+                                        return `Volume: ${context.parsed.y.toLocaleString()}`;
+                                    } else {
+                                        return `${context.dataset.label}: $${context.parsed.y.toFixed(2)}`;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        }
+
+        function getTimeUnit(timeframe) {
+            const timeUnitMap = {
+                '1d': 'hour',
+                '1w': 'day', 
+                '1mo': 'day',
+                '3mo': 'week',
+                '1y': 'month'
+            };
+            return timeUnitMap[timeframe] || 'day';
         }
 
         function changeTimeframe(timeframe) {
