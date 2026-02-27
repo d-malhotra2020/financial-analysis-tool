@@ -689,7 +689,6 @@
 
     <script>
         let currentChart = null;
-        let currentTradingViewChart = null;
         let currentSymbol = null;
         let currentTimeframe = '1d';
         let currentChartType = 'line';
@@ -1064,10 +1063,6 @@
                     currentChart = null;
                 }
                 
-                if (currentTradingViewChart) {
-                    currentTradingViewChart.remove();
-                    currentTradingViewChart = null;
-                }
 
                 // Show canvas and create chart based on type
                 const chartCanvas = document.getElementById('stockChart');
