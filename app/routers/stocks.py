@@ -72,7 +72,7 @@ async def get_stock_detail(
         }
         
         # Calculate technical indicators
-        analysis = technical_service.calculate_basic_indicators(prices)
+        analysis = technical_service.calculate_basic_indicators(prices, symbol)
         predicted_prices = technical_service.generate_simple_predictions(prices)
         
         # Build response
@@ -178,7 +178,7 @@ async def get_technical_analysis(symbol: str):
         prices = [day["close"] for day in stock_data["data"]]
         
         # Calculate basic technical indicators
-        indicators = technical_service.calculate_basic_indicators(prices)
+        indicators = technical_service.calculate_basic_indicators(prices, symbol)
         
         # Generate predictions
         predictions = technical_service.generate_simple_predictions(prices)

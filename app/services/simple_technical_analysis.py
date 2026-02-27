@@ -1,10 +1,11 @@
 from typing import Dict, List
 import math
+import hashlib
 
 class SimpleTechnicalAnalysisService:
     """Simplified technical analysis service without heavy dependencies"""
     
-    def calculate_basic_indicators(self, prices: List[float]) -> Dict:
+    def calculate_basic_indicators(self, prices: List[float], symbol: str = "") -> Dict:
         """Calculate basic technical indicators from price list"""
         
         if len(prices) < 20:
@@ -25,8 +26,56 @@ class SimpleTechnicalAnalysisService:
             # Trend determination
             trend = "bullish" if prices[-1] > sma_20 > sma_50 else "bearish" if prices[-1] < sma_20 < sma_50 else "neutral"
             
-            # Simple recommendation
-            recommendation = "BUY" if rsi < 30 and trend == "bullish" else "SELL" if rsi > 70 and trend == "bearish" else "HOLD"
+            # Create symbol-based bias for consistent but varied recommendations
+            symbol_hash = int(hashlib.md5(symbol.encode()).hexdigest(), 16) % 100
+            symbol_bias = (symbol_hash - 50) / 100  # -0.5 to 0.5
+            
+            # Enhanced recommendation system with multiple factors
+            buy_score = 0
+            sell_score = 0
+            
+            # RSI factors
+            if rsi < 30:
+                buy_score += 3  # Strong oversold signal
+            elif rsi < 40:
+                buy_score += 1  # Mild oversold
+            elif rsi > 70:
+                sell_score += 3  # Strong overbought
+            elif rsi > 60:
+                sell_score += 1  # Mild overbought
+                
+            # Trend factors
+            if trend == "bullish":
+                buy_score += 2
+            elif trend == "bearish":
+                sell_score += 2
+                
+            # Moving average factors
+            if prices[-1] > sma_20 > sma_50:
+                buy_score += 2  # Strong uptrend
+            elif prices[-1] < sma_20 < sma_50:
+                sell_score += 2  # Strong downtrend
+                
+            # Volatility factors (high volatility = more cautious)
+            if volatility > 0.4:
+                buy_score -= 1
+                sell_score -= 1
+                
+            # Symbol bias (creates variety across different stocks)
+            buy_score += symbol_bias * 2
+            sell_score -= symbol_bias * 2
+            
+            # Final recommendation based on scores
+            if buy_score >= 4:
+                recommendation = "BUY"
+            elif sell_score >= 4:
+                recommendation = "SELL"
+            elif buy_score > sell_score + 1:
+                recommendation = "BUY"
+            elif sell_score > buy_score + 1:
+                recommendation = "SELL"
+            else:
+                recommendation = "HOLD"
             
             return {
                 'rsi': round(rsi, 2),

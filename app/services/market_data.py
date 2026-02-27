@@ -114,11 +114,92 @@ class MarketDataService:
     def get_stock_info(self, symbol: str) -> Optional[Dict]:
         """Get mock stock information"""
         companies = {
+            # Technology
             "AAPL": {"name": "Apple Inc.", "sector": "Technology", "industry": "Consumer Electronics"},
             "GOOGL": {"name": "Alphabet Inc.", "sector": "Technology", "industry": "Internet"},
             "MSFT": {"name": "Microsoft Corp.", "sector": "Technology", "industry": "Software"},
+            "META": {"name": "Meta Platforms Inc.", "sector": "Technology", "industry": "Social Media"},
+            "NVDA": {"name": "NVIDIA Corporation", "sector": "Technology", "industry": "Semiconductors"},
+            "AMD": {"name": "Advanced Micro Devices", "sector": "Technology", "industry": "Semiconductors"},
+            "INTC": {"name": "Intel Corporation", "sector": "Technology", "industry": "Semiconductors"},
+            "ORCL": {"name": "Oracle Corporation", "sector": "Technology", "industry": "Software"},
+            "CRM": {"name": "Salesforce Inc.", "sector": "Technology", "industry": "Software"},
+            "ADBE": {"name": "Adobe Inc.", "sector": "Technology", "industry": "Software"},
+            "CSCO": {"name": "Cisco Systems Inc.", "sector": "Technology", "industry": "Networking"},
+            "IBM": {"name": "International Business Machines", "sector": "Technology", "industry": "IT Services"},
+            "AVGO": {"name": "Broadcom Inc.", "sector": "Technology", "industry": "Semiconductors"},
+            "ACN": {"name": "Accenture PLC", "sector": "Technology", "industry": "IT Services"},
+            "TXN": {"name": "Texas Instruments Inc.", "sector": "Technology", "industry": "Semiconductors"},
+            "QCOM": {"name": "Qualcomm Inc.", "sector": "Technology", "industry": "Semiconductors"},
+            
+            # Consumer Discretionary
             "AMZN": {"name": "Amazon.com Inc.", "sector": "Consumer Discretionary", "industry": "E-commerce"},
-            "TSLA": {"name": "Tesla Inc.", "sector": "Consumer Discretionary", "industry": "Electric Vehicles"}
+            "TSLA": {"name": "Tesla Inc.", "sector": "Consumer Discretionary", "industry": "Electric Vehicles"},
+            "HD": {"name": "Home Depot Inc.", "sector": "Consumer Discretionary", "industry": "Home Improvement"},
+            "MCD": {"name": "McDonald's Corp.", "sector": "Consumer Discretionary", "industry": "Restaurants"},
+            "NKE": {"name": "Nike Inc.", "sector": "Consumer Discretionary", "industry": "Apparel"},
+            "SBUX": {"name": "Starbucks Corp.", "sector": "Consumer Discretionary", "industry": "Restaurants"},
+            
+            # Financials
+            "JPM": {"name": "JPMorgan Chase & Co.", "sector": "Financials", "industry": "Banking"},
+            "BAC": {"name": "Bank of America Corp.", "sector": "Financials", "industry": "Banking"},
+            "WFC": {"name": "Wells Fargo & Co.", "sector": "Financials", "industry": "Banking"},
+            "GS": {"name": "Goldman Sachs Group Inc.", "sector": "Financials", "industry": "Investment Banking"},
+            "MS": {"name": "Morgan Stanley", "sector": "Financials", "industry": "Investment Banking"},
+            "AXP": {"name": "American Express Co.", "sector": "Financials", "industry": "Credit Services"},
+            "V": {"name": "Visa Inc.", "sector": "Financials", "industry": "Payment Systems"},
+            "MA": {"name": "Mastercard Inc.", "sector": "Financials", "industry": "Payment Systems"},
+            "PYPL": {"name": "PayPal Holdings Inc.", "sector": "Financials", "industry": "Payment Systems"},
+            "BRK.A": {"name": "Berkshire Hathaway Inc. Class A", "sector": "Financials", "industry": "Diversified"},
+            "BRK.B": {"name": "Berkshire Hathaway Inc. Class B", "sector": "Financials", "industry": "Diversified"},
+            
+            # Healthcare
+            "JNJ": {"name": "Johnson & Johnson", "sector": "Healthcare", "industry": "Pharmaceuticals"},
+            "PFE": {"name": "Pfizer Inc.", "sector": "Healthcare", "industry": "Pharmaceuticals"},
+            "ABBV": {"name": "AbbVie Inc.", "sector": "Healthcare", "industry": "Pharmaceuticals"},
+            "MRK": {"name": "Merck & Co. Inc.", "sector": "Healthcare", "industry": "Pharmaceuticals"},
+            "UNH": {"name": "UnitedHealth Group Inc.", "sector": "Healthcare", "industry": "Health Insurance"},
+            "TMO": {"name": "Thermo Fisher Scientific Inc.", "sector": "Healthcare", "industry": "Life Sciences"},
+            "ABT": {"name": "Abbott Laboratories", "sector": "Healthcare", "industry": "Medical Devices"},
+            "DHR": {"name": "Danaher Corp.", "sector": "Healthcare", "industry": "Life Sciences"},
+            "BMY": {"name": "Bristol Myers Squibb Co.", "sector": "Healthcare", "industry": "Pharmaceuticals"},
+            
+            # Consumer Staples
+            "KO": {"name": "Coca-Cola Co.", "sector": "Consumer Staples", "industry": "Beverages"},
+            "PEP": {"name": "PepsiCo Inc.", "sector": "Consumer Staples", "industry": "Beverages"},
+            "WMT": {"name": "Walmart Inc.", "sector": "Consumer Staples", "industry": "Retail"},
+            "PG": {"name": "Procter & Gamble Co.", "sector": "Consumer Staples", "industry": "Personal Products"},
+            "COST": {"name": "Costco Wholesale Corp.", "sector": "Consumer Staples", "industry": "Retail"},
+            "PM": {"name": "Philip Morris International Inc.", "sector": "Consumer Staples", "industry": "Tobacco"},
+            
+            # Energy
+            "XOM": {"name": "Exxon Mobil Corp.", "sector": "Energy", "industry": "Oil & Gas"},
+            "CVX": {"name": "Chevron Corporation", "sector": "Energy", "industry": "Oil & Gas"},
+            
+            # Industrials
+            "BA": {"name": "Boeing Co.", "sector": "Industrials", "industry": "Aerospace"},
+            "CAT": {"name": "Caterpillar Inc.", "sector": "Industrials", "industry": "Construction Machinery"},
+            "HON": {"name": "Honeywell International Inc.", "sector": "Industrials", "industry": "Diversified Industrials"},
+            "MMM": {"name": "3M Co.", "sector": "Industrials", "industry": "Diversified Industrials"},
+            "UPS": {"name": "United Parcel Service Inc.", "sector": "Industrials", "industry": "Logistics"},
+            "RTX": {"name": "Raytheon Technologies Corp.", "sector": "Industrials", "industry": "Aerospace"},
+            "DE": {"name": "Deere & Co.", "sector": "Industrials", "industry": "Agricultural Equipment"},
+            
+            # Communication Services
+            "GOOGL": {"name": "Alphabet Inc.", "sector": "Communication Services", "industry": "Internet"},
+            "META": {"name": "Meta Platforms Inc.", "sector": "Communication Services", "industry": "Social Media"},
+            "NFLX": {"name": "Netflix Inc.", "sector": "Communication Services", "industry": "Entertainment"},
+            "DIS": {"name": "Walt Disney Co.", "sector": "Communication Services", "industry": "Entertainment"},
+            "T": {"name": "AT&T Inc.", "sector": "Communication Services", "industry": "Telecommunications"},
+            "VZ": {"name": "Verizon Communications Inc.", "sector": "Communication Services", "industry": "Telecommunications"},
+            "TMUS": {"name": "T-Mobile US Inc.", "sector": "Communication Services", "industry": "Telecommunications"},
+            "CMCSA": {"name": "Comcast Corp.", "sector": "Communication Services", "industry": "Media"},
+            
+            # Utilities
+            "NEE": {"name": "NextEra Energy Inc.", "sector": "Utilities", "industry": "Electric Utilities"},
+            
+            # Materials
+            "DOW": {"name": "Dow Inc.", "sector": "Materials", "industry": "Chemicals"}
         }
         
         if symbol.upper() in companies:
