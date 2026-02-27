@@ -631,21 +631,21 @@
             
             <div class="chart-container">
                 <div class="chart-controls">
-                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap;">
                         <button class="chart-type-btn active" onclick="changeChartType('candlestick')">Candlestick</button>
                         <button class="chart-type-btn" onclick="changeChartType('ohlc')">OHLC Bars</button>
                         <button class="chart-type-btn" onclick="changeChartType('line')">Line Chart</button>
                         <button class="chart-type-btn" onclick="changeChartType('area')">Area Chart</button>
                         <button class="chart-type-btn" onclick="changeChartType('volume')">Volume Chart</button>
                     </div>
-                    <div style="display: flex; gap: 10px;">
+                    <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
                         <button class="time-btn" onclick="changeTimeframe('1d')">1D</button>
                         <button class="time-btn" onclick="changeTimeframe('1w')">1W</button>
                         <button class="time-btn" onclick="changeTimeframe('1mo')">1M</button>
                         <button class="time-btn" onclick="changeTimeframe('3mo')">3M</button>
                         <button class="time-btn active" onclick="changeTimeframe('1y')">1Y</button>
                         <button class="time-btn" onclick="changeTimeframe('5y')">5Y</button>
-                        <button class="time-btn" onclick="changeTimeframe('max')">All Time</button>
+                        <button class="time-btn" onclick="changeTimeframe('max')">Max</button>
                     </div>
                 </div>
                 <div class="chart-wrapper">
