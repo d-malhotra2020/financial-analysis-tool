@@ -85,7 +85,7 @@ export default function StockChart({
     chartRef.current = chart;
 
     const mapData = data.data.map((d) => ({
-      time: (new Date(d.timestamp).getTime() / 1000) as import("lightweight-charts").UTCTimestamp,
+      time: d.timestamp as string,
       open: d.open,
       high: d.high,
       low: d.low,
@@ -97,7 +97,7 @@ export default function StockChart({
       (item, index, self) => index === self.findIndex((t) => t.time === item.time)
     );
 
-    uniqueData.sort((a, b) => (a.time as number) - (b.time as number));
+    uniqueData.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
 
     if (chartType === "candlestick") {
       const series = chart.addSeries(lwc.CandlestickSeries, {
@@ -133,7 +133,7 @@ export default function StockChart({
 
       const smaLength = Math.min(20, Math.floor(uniqueData.length / 3));
       if (smaLength >= 2) {
-        const smaData: { time: import("lightweight-charts").UTCTimestamp; value: number }[] = [];
+        const smaData: { time: string; value: number }[] = [];
         for (let i = smaLength - 1; i < uniqueData.length; i++) {
           let sum = 0;
           for (let j = 0; j < smaLength; j++) sum += uniqueData[i - j].close;
