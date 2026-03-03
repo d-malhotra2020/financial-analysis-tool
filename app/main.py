@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 import os
 import asyncio
@@ -52,7 +52,10 @@ async def startup_event():
     print(f"📈 S&P 500 real-time data: Updates every 5 minutes")
     print(f"📡 API Documentation: http://localhost:8000/docs")
 
-# Dashboard is now served by dashboard router
+# Mount Next.js static assets
+frontend_out = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "out")
+if os.path.isdir(os.path.join(frontend_out, "_next")):
+    app.mount("/_next", StaticFiles(directory=os.path.join(frontend_out, "_next")), name="nextjs_assets")
 
 @app.get("/health")
 async def health_check():
