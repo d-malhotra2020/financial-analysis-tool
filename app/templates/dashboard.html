@@ -309,6 +309,59 @@
             height: 400px;
             margin-bottom: 20px;
         }
+
+        .index-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 14px;
+            padding: 10px 14px;
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            align-items: center;
+        }
+
+        .index-legend-title {
+            font-weight: 600;
+            font-size: 13px;
+            color: #2d3748;
+            margin-right: 4px;
+        }
+
+        .index-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #4a5568;
+            cursor: pointer;
+            padding: 3px 8px;
+            border-radius: 4px;
+            transition: background 0.15s;
+            user-select: none;
+        }
+
+        .index-legend-item:hover {
+            background: #edf2f7;
+        }
+
+        .index-legend-item.disabled {
+            opacity: 0.4;
+        }
+
+        .index-legend-swatch {
+            width: 14px;
+            height: 3px;
+            border-radius: 2px;
+        }
+
+        .index-legend-value {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 11px;
+            font-weight: 600;
+        }
         
         #stockChart {
             width: 100%;
@@ -506,6 +559,16 @@
                 flex-wrap: wrap;
                 justify-content: center;
             }
+
+            .index-legend {
+                gap: 8px;
+                padding: 8px 10px;
+            }
+
+            .index-legend-item {
+                font-size: 11px;
+                padding: 2px 6px;
+            }
             
             .chart-type-btn, .time-btn {
                 padding: 12px 16px;
@@ -648,6 +711,10 @@
                         <button class="time-btn" onclick="changeTimeframe('max')">Max</button>
                     </div>
                 </div>
+                <div class="index-legend" id="indexLegend">
+                    <span class="index-legend-title">Market Indices:</span>
+                    <span style="font-size:11px;color:#718096;">Loading...</span>
+                </div>
                 <div class="chart-wrapper">
                     <canvas id="stockChart"></canvas>
                 </div>
@@ -695,7 +762,17 @@
         let currentChartType = 'candlestick';
         let allStocks = [];
         let cachedChartData = null;
-        let cachedDataKey = null; // Cache for consistent chart data
+        let cachedDataKey = null;
+        let indexOverlayData = {};
+        let indexOverlayEnabled = { 'SPY': true, 'DIA': true, 'QQQ': true, 'IWM': true, 'VTI': true };
+
+        const INDEX_CONFIG = {
+            'SPY': { label: 'S&P 500', color: '#e53e3e' },
+            'DIA': { label: 'Dow Jones', color: '#dd6b20' },
+            'QQQ': { label: 'NASDAQ 100', color: '#805ad5' },
+            'IWM': { label: 'Russell 2000', color: '#38a169' },
+            'VTI': { label: 'Total Market', color: '#3182ce' }
+        };
 
         // Comprehensive US Stock Database (NYSE, NASDAQ, S&P 500, DOW)
         const stockDatabase = [
@@ -1042,9 +1119,57 @@
             `;
         }
 
+        async function fetchIndexData(timeframe) {
+            const symbols = Object.keys(INDEX_CONFIG);
+            const promises = symbols.map(async (sym) => {
+                try {
+                    const resp = await fetch(`/api/v1/stocks/${sym}/chart?period=${timeframe}`);
+                    if (resp.ok) {
+                        const d = await resp.json();
+                        indexOverlayData[sym] = d;
+                    }
+                } catch (e) {
+                    console.warn(`Failed to load index ${sym}:`, e);
+                }
+            });
+            await Promise.all(promises);
+            updateIndexLegend();
+        }
+
+        function updateIndexLegend() {
+            const legend = document.getElementById('indexLegend');
+            let html = '<span class="index-legend-title">Market Indices:</span>';
+            for (const [sym, cfg] of Object.entries(INDEX_CONFIG)) {
+                const data = indexOverlayData[sym];
+                let valueHtml = '';
+                if (data && data.data && data.data.length >= 2) {
+                    const first = data.data[0].close;
+                    const last = data.data[data.data.length - 1].close;
+                    const pctChange = ((last - first) / first * 100).toFixed(2);
+                    const sign = pctChange >= 0 ? '+' : '';
+                    const colorClass = pctChange >= 0 ? '#38a169' : '#e53e3e';
+                    valueHtml = `<span class="index-legend-value" style="color:${colorClass}">${sign}${pctChange}%</span>`;
+                }
+                const disabledClass = indexOverlayEnabled[sym] ? '' : ' disabled';
+                html += `<span class="index-legend-item${disabledClass}" onclick="toggleIndex('${sym}')">
+                    <span class="index-legend-swatch" style="background:${cfg.color}"></span>
+                    ${cfg.label} (${sym})
+                    ${valueHtml}
+                </span>`;
+            }
+            legend.innerHTML = html;
+        }
+
+        function toggleIndex(sym) {
+            indexOverlayEnabled[sym] = !indexOverlayEnabled[sym];
+            updateIndexLegend();
+            if (currentSymbol) {
+                loadStockChart(currentSymbol, currentTimeframe);
+            }
+        }
+
         async function loadStockChart(symbol, timeframe) {
             try {
-                // Check if we have cached data for this symbol and timeframe
                 const dataKey = `${symbol}-${timeframe}`;
                 let data;
                 
@@ -1053,18 +1178,16 @@
                 } else {
                     const response = await fetch(`/api/v1/stocks/${symbol}/chart?period=${timeframe}`);
                     data = await response.json();
-                    // Cache the data
                     cachedChartData = data;
                     cachedDataKey = dataKey;
+                    await fetchIndexData(timeframe);
                 }
 
-                // Clean up previous charts
                 if (currentChart) {
                     currentChart.destroy();
                     currentChart = null;
                 }
 
-                // Create chart on canvas
                 const chartCanvas = document.getElementById('stockChart');
                 const ctx = chartCanvas.getContext('2d');
                 createChart(ctx, data, symbol, currentChartType);
@@ -1268,6 +1391,8 @@
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
             ctx.fillText('Time', width / 2, height - 10);
+            
+            drawIndexOverlaysOnCanvas(ctx, displayData, margin, chartWidth, chartHeight, yMin, yMax);
         }
         
         function createCustomOHLCChart(ctx, data, symbol) {
@@ -1458,6 +1583,62 @@
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
             ctx.fillText('Time', width / 2, height - 10);
+            
+            drawIndexOverlaysOnCanvas(ctx, displayData, margin, chartWidth, chartHeight, yMin, yMax);
+        }
+
+        function drawIndexOverlaysOnCanvas(ctx, displayData, margin, chartWidth, chartHeight, yMin, yMax) {
+            if (!displayData || displayData.length < 2) return;
+            const stockFirst = displayData[0].close || displayData[0].open;
+            if (!stockFirst) return;
+
+            const xScale = chartWidth / displayData.length;
+            function getX(i) { return margin.left + (i * xScale) + (xScale / 2); }
+            function getY(price) { return margin.top + chartHeight - ((price - yMin) / (yMax - yMin) * chartHeight); }
+
+            for (const [sym, cfg] of Object.entries(INDEX_CONFIG)) {
+                if (!indexOverlayEnabled[sym] || !indexOverlayData[sym]) continue;
+                const idxData = indexOverlayData[sym].data;
+                if (!idxData || idxData.length < 2) continue;
+
+                const idxFirst = idxData[0].close;
+                const len = Math.min(displayData.length, idxData.length);
+                const idxSlice = idxData.length > len ? idxData.slice(-len) : idxData;
+                const idxFirstAdj = idxSlice[0].close;
+
+                ctx.save();
+                ctx.strokeStyle = cfg.color;
+                ctx.lineWidth = 1.5;
+                ctx.globalAlpha = 0.6;
+                ctx.setLineDash([6, 3]);
+                ctx.beginPath();
+                let started = false;
+                for (let i = 0; i < len; i++) {
+                    const pctChange = (idxSlice[i].close - idxFirstAdj) / idxFirstAdj;
+                    const mappedPrice = stockFirst * (1 + pctChange);
+                    if (mappedPrice < yMin || mappedPrice > yMax * 1.5) continue;
+                    const x = getX(i);
+                    const y = getY(mappedPrice);
+                    if (!started) { ctx.moveTo(x, y); started = true; }
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                if (started && len > 0) {
+                    const lastPct = (idxSlice[len-1].close - idxFirstAdj) / idxFirstAdj;
+                    const lastMapped = stockFirst * (1 + lastPct);
+                    const lastY = getY(lastMapped);
+                    const lastX = getX(len - 1);
+                    ctx.globalAlpha = 0.8;
+                    ctx.fillStyle = cfg.color;
+                    ctx.font = 'bold 10px "Inter", sans-serif';
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(cfg.label, lastX + 5, lastY);
+                }
+                ctx.restore();
+            }
         }
 
         function createChart(ctx, data, symbol, chartType) {
@@ -1485,7 +1666,7 @@
                         text: `${symbol} - ${getChartTitle(chartType)}`
                     },
                     legend: {
-                        display: chartType !== 'volume'
+                        display: true
                     }
                 },
                 scales: {}
@@ -1515,6 +1696,7 @@
                         pointHoverRadius: 6,
                         borderWidth: 3
                     }];
+                    addIndexOverlayDatasets(datasets, data, 'price');
                     break;
 
                 case 'area':
@@ -1529,6 +1711,7 @@
                         pointHoverRadius: 6,
                         borderWidth: 2
                     }];
+                    addIndexOverlayDatasets(datasets, data, 'price');
                     break;
 
                 case 'bar':
@@ -1557,6 +1740,40 @@
                         borderWidth: 1
                     }];
                     break;
+            }
+
+            function addIndexOverlayDatasets(ds, stockData, mode) {
+                if (!stockData.data || stockData.data.length < 2) return;
+                const stockFirst = stockData.data[0].close;
+                for (const [sym, cfg] of Object.entries(INDEX_CONFIG)) {
+                    if (!indexOverlayEnabled[sym] || !indexOverlayData[sym]) continue;
+                    const idxData = indexOverlayData[sym].data;
+                    if (!idxData || idxData.length < 2) continue;
+                    const len = Math.min(stockData.data.length, idxData.length);
+                    const idxSlice = idxData.length > len ? idxData.slice(-len) : idxData;
+                    const idxFirst = idxSlice[0].close;
+                    const overlayPoints = [];
+                    for (let i = 0; i < len; i++) {
+                        const pctChange = (idxSlice[i].close - idxFirst) / idxFirst;
+                        const mappedPrice = stockFirst * (1 + pctChange);
+                        overlayPoints.push({
+                            x: new Date(stockData.data[i].timestamp),
+                            y: mappedPrice
+                        });
+                    }
+                    ds.push({
+                        label: cfg.label,
+                        data: overlayPoints,
+                        borderColor: cfg.color,
+                        backgroundColor: 'transparent',
+                        fill: false,
+                        tension: 0.2,
+                        pointRadius: 0,
+                        pointHoverRadius: 3,
+                        borderWidth: 1.5,
+                        borderDash: [6, 3]
+                    });
+                }
             }
 
             // Add appropriate scales
