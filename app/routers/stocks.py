@@ -5,6 +5,7 @@ import asyncio
 
 from ..services.market_data import MarketDataService
 from ..services.simple_technical_analysis import SimpleTechnicalAnalysisService
+from ..services.news_service import fetch_news
 
 router = APIRouter()
 
@@ -202,6 +203,23 @@ async def get_technical_analysis(symbol: str):
         
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error performing technical analysis: {str(e)}")
+
+@router.get("/{symbol}/news")
+async def get_stock_news(
+    symbol: str,
+    count: int = Query(6, ge=1, le=20, description="Number of articles to return")
+):
+    """Get recent news articles for a stock"""
+    
+    try:
+        articles = fetch_news(symbol, count)
+        return {
+            "symbol": symbol.upper(),
+            "count": len(articles),
+            "articles": articles
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error fetching news: {str(e)}")
 
 @router.post("/{symbol}/watchlist")
 async def add_to_watchlist(symbol: str):
