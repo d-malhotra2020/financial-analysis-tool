@@ -55,6 +55,7 @@ export default function StockChart({
     }
 
     const container = containerRef.current;
+    const isIntraday = timeframe === "1d" || timeframe === "1w";
     const chart = lwc.createChart(container, {
       width: container.clientWidth,
       height: container.clientHeight,
@@ -78,14 +79,16 @@ export default function StockChart({
       },
       timeScale: {
         borderColor: "rgba(63, 63, 70, 0.3)",
-        timeVisible: timeframe === "1d",
+        timeVisible: isIntraday,
       },
     });
 
     chartRef.current = chart;
 
     const mapData = data.data.map((d) => ({
-      time: d.timestamp as string,
+      time: isIntraday
+        ? (Math.floor(new Date(d.timestamp).getTime() / 1000) as import("lightweight-charts").UTCTimestamp)
+        : d.timestamp.split(" ")[0] as string,
       open: d.open,
       high: d.high,
       low: d.low,
@@ -97,7 +100,11 @@ export default function StockChart({
       (item, index, self) => index === self.findIndex((t) => t.time === item.time)
     );
 
-    uniqueData.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
+    uniqueData.sort((a, b) => {
+      const ta = typeof a.time === "number" ? a.time : a.time;
+      const tb = typeof b.time === "number" ? b.time : b.time;
+      return ta < tb ? -1 : ta > tb ? 1 : 0;
+    });
 
     if (chartType === "candlestick") {
       const series = chart.addSeries(lwc.CandlestickSeries, {
@@ -133,7 +140,7 @@ export default function StockChart({
 
       const smaLength = Math.min(20, Math.floor(uniqueData.length / 3));
       if (smaLength >= 2) {
-        const smaData: { time: string; value: number }[] = [];
+        const smaData: { time: string | import("lightweight-charts").UTCTimestamp; value: number }[] = [];
         for (let i = smaLength - 1; i < uniqueData.length; i++) {
           let sum = 0;
           for (let j = 0; j < smaLength; j++) sum += uniqueData[i - j].close;
