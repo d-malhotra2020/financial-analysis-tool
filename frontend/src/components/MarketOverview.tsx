@@ -112,8 +112,8 @@ export default function MarketOverview({ onStockSelect }: Props) {
           <StatCard label="Advancing" value={overview.market_summary.advancing_stocks} color="text-emerald-400" />
           <StatCard label="Declining" value={overview.market_summary.declining_stocks} color="text-red-400" />
           <StatCard
-            label="Total Volume"
-            value={`${(overview.market_summary.total_volume / 1e9).toFixed(1)}B`}
+            label="Market Cap"
+            value={`$${((overview.market_summary as Record<string, number>).total_market_cap / 1e12).toFixed(2)}T`}
             color="text-blue-400"
           />
           <StatCard
