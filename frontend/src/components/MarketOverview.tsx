@@ -10,12 +10,26 @@ interface Props {
   onStockSelect: (symbol: string) => void;
 }
 
+function useRelativeTime(isoString: string | undefined) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 10000);
+    return () => clearInterval(id);
+  }, []);
+  if (!isoString) return null;
+  const diff = Math.max(0, Math.floor((now - new Date(isoString).getTime()) / 1000));
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  return `${Math.floor(diff / 3600)}h ago`;
+}
+
 export default function MarketOverview({ onStockSelect }: Props) {
   const [overview, setOverview] = useState<MarketOverviewType | null>(null);
   const [gainers, setGainers] = useState<MarketMover[]>([]);
   const [losers, setLosers] = useState<MarketMover[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const relativeTime = useRelativeTime(overview?.last_update);
 
   const load = useCallback(async () => {
     try {
@@ -70,9 +84,9 @@ export default function MarketOverview({ onStockSelect }: Props) {
     >
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-zinc-100">Market Overview</h2>
-        {overview?.last_update && (
+        {relativeTime && (
           <span className="text-xs text-zinc-500">
-            Updated {new Date(overview.last_update).toLocaleTimeString()}
+            Updated {relativeTime}
           </span>
         )}
       </div>
