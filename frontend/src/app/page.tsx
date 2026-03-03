@@ -82,7 +82,7 @@ export default function Dashboard() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-zinc-100">Financial Analysis Dashboard</h1>
-              <p className="text-xs text-zinc-500">NYSE · NASDAQ · S&P 500 · DOW</p>
+              <p className="text-xs text-zinc-500">NYSE · NASDAQ · S&P 500 · DOW · FTSE · DAX · Nikkei · Hang Seng · Global Indices</p>
             </div>
           </div>
           <div className="flex items-center gap-2">

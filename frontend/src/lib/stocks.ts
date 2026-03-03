@@ -1,6 +1,41 @@
 import type { StockInfo } from "./types";
 
 export const stockDatabase: StockInfo[] = [
+  // Global Indices — Americas
+  { symbol: "^GSPC", name: "S&P 500", sector: "Index", exchange: "US" },
+  { symbol: "^DJI", name: "Dow Jones Industrial Average", sector: "Index", exchange: "US" },
+  { symbol: "^IXIC", name: "NASDAQ Composite", sector: "Index", exchange: "US" },
+  { symbol: "^RUT", name: "Russell 2000", sector: "Index", exchange: "US" },
+  { symbol: "^GSPTSE", name: "S&P/TSX Composite", sector: "Index", exchange: "Canada" },
+  { symbol: "^BVSP", name: "Bovespa", sector: "Index", exchange: "Brazil" },
+  { symbol: "^MXX", name: "IPC Mexico", sector: "Index", exchange: "Mexico" },
+  // Global Indices — Europe
+  { symbol: "^FTSE", name: "FTSE 100", sector: "Index", exchange: "UK" },
+  { symbol: "^GDAXI", name: "DAX 40", sector: "Index", exchange: "Germany" },
+  { symbol: "^FCHI", name: "CAC 40", sector: "Index", exchange: "France" },
+  { symbol: "^STOXX50E", name: "Euro Stoxx 50", sector: "Index", exchange: "EU" },
+  { symbol: "^AEX", name: "AEX", sector: "Index", exchange: "Netherlands" },
+  { symbol: "^IBEX", name: "IBEX 35", sector: "Index", exchange: "Spain" },
+  { symbol: "FTSEMIB.MI", name: "FTSE MIB", sector: "Index", exchange: "Italy" },
+  { symbol: "^SSMI", name: "SMI", sector: "Index", exchange: "Switzerland" },
+  { symbol: "^OMX", name: "OMX Stockholm 30", sector: "Index", exchange: "Sweden" },
+  // Global Indices — Asia-Pacific
+  { symbol: "^N225", name: "Nikkei 225", sector: "Index", exchange: "Japan" },
+  { symbol: "^HSI", name: "Hang Seng", sector: "Index", exchange: "Hong Kong" },
+  { symbol: "000001.SS", name: "Shanghai Composite", sector: "Index", exchange: "China" },
+  { symbol: "399001.SZ", name: "Shenzhen Component", sector: "Index", exchange: "China" },
+  { symbol: "^KS11", name: "KOSPI", sector: "Index", exchange: "South Korea" },
+  { symbol: "^TWII", name: "TAIEX", sector: "Index", exchange: "Taiwan" },
+  { symbol: "^AXJO", name: "ASX 200", sector: "Index", exchange: "Australia" },
+  { symbol: "^BSESN", name: "BSE Sensex", sector: "Index", exchange: "India" },
+  { symbol: "^NSEI", name: "Nifty 50", sector: "Index", exchange: "India" },
+  { symbol: "^STI", name: "Straits Times", sector: "Index", exchange: "Singapore" },
+  { symbol: "^NZ50", name: "NZX 50", sector: "Index", exchange: "New Zealand" },
+  { symbol: "^JKSE", name: "Jakarta Composite", sector: "Index", exchange: "Indonesia" },
+  // Global Indices — Middle East & Africa
+  { symbol: "^TA125.TA", name: "TA-125", sector: "Index", exchange: "Israel" },
+  { symbol: "^J203.JO", name: "JSE Top 40", sector: "Index", exchange: "South Africa" },
+  // Stocks
   { symbol: "AAPL", name: "Apple Inc.", sector: "Technology", exchange: "NASDAQ" },
   { symbol: "MSFT", name: "Microsoft Corporation", sector: "Technology", exchange: "NASDAQ" },
   { symbol: "GOOGL", name: "Alphabet Inc.", sector: "Technology", exchange: "NASDAQ" },
@@ -79,5 +114,6 @@ export function searchStocks(query: string): StockInfo[] {
 }
 
 export function getRandomStock(): StockInfo {
-  return stockDatabase[Math.floor(Math.random() * stockDatabase.length)];
+  const stocks = stockDatabase.filter((s) => s.sector !== "Index");
+  return stocks[Math.floor(Math.random() * stocks.length)];
 }
