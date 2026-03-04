@@ -15,26 +15,46 @@ async def search_stocks(
     limit: int = Query(10, ge=1, le=50, description="Maximum number of results")
 ):
     """Search for stocks by symbol or company name"""
-    
-    # Simulate stock search results
-    mock_results = [
-        {"symbol": "AAPL", "name": "Apple Inc.", "exchange": "NASDAQ", "sector": "Technology"},
-        {"symbol": "GOOGL", "name": "Alphabet Inc.", "exchange": "NASDAQ", "sector": "Technology"},
-        {"symbol": "MSFT", "name": "Microsoft Corp.", "exchange": "NASDAQ", "sector": "Technology"},
-        {"symbol": "AMZN", "name": "Amazon.com Inc.", "exchange": "NASDAQ", "sector": "Consumer Discretionary"},
-        {"symbol": "TSLA", "name": "Tesla Inc.", "exchange": "NASDAQ", "sector": "Consumer Discretionary"},
-    ]
-    
-    # Filter results based on query
-    filtered_results = [
-        stock for stock in mock_results 
-        if query.upper() in stock["symbol"] or query.lower() in stock["name"].lower()
-    ]
-    
+    import yfinance as yf
+
+    results = []
+    seen = set()
+
+    try:
+        ticker = yf.Ticker(query.upper())
+        info = ticker.info
+        if info and info.get("regularMarketPrice") or info.get("currentPrice") or info.get("previousClose"):
+            sym = info.get("symbol", query.upper())
+            if sym not in seen:
+                seen.add(sym)
+                results.append({
+                    "symbol": sym,
+                    "name": info.get("longName") or info.get("shortName") or sym,
+                    "exchange": info.get("exchange", ""),
+                    "sector": info.get("sector", "N/A"),
+                })
+    except Exception:
+        pass
+
+    try:
+        search_results = yf.Search(query)
+        for q in getattr(search_results, "quotes", []):
+            sym = q.get("symbol", "")
+            if sym and sym not in seen and len(results) < limit:
+                seen.add(sym)
+                results.append({
+                    "symbol": sym,
+                    "name": q.get("longname") or q.get("shortname") or sym,
+                    "exchange": q.get("exchange", ""),
+                    "sector": q.get("sector", "N/A"),
+                })
+    except Exception:
+        pass
+
     return {
         "query": query,
-        "results": filtered_results[:limit],
-        "total_found": len(filtered_results)
+        "results": results[:limit],
+        "total_found": len(results)
     }
 
 @router.get("/{symbol}")
