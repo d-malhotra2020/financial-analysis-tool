@@ -1,5 +1,6 @@
 import type {
   StockDetail,
+  StockInfo,
   ChartData,
   MarketOverview,
   GainersResponse,
@@ -37,4 +38,11 @@ export async function getTopLosers(): Promise<LosersResponse> {
 
 export async function getStockNews(symbol: string): Promise<NewsResponse> {
   return fetchJSON(`/api/v1/stocks/${symbol}/news`);
+}
+
+export async function searchStocksAPI(query: string): Promise<StockInfo[]> {
+  const data = await fetchJSON<{ results: StockInfo[] }>(
+    `/api/v1/stocks/search?query=${encodeURIComponent(query)}&limit=10`
+  );
+  return data.results;
 }
