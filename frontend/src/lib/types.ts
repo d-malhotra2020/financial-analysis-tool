@@ -113,3 +113,39 @@ export interface NewsResponse {
 
 export type Timeframe = "1d" | "1w" | "1mo" | "3mo" | "1y" | "5y" | "max";
 export type ChartType = "candlestick" | "line" | "area" | "volume";
+
+export interface CalibrationSymbolStats {
+  total: number;
+  correct: number;
+  accuracy: number;
+}
+
+export interface CalibrationOutcomeStats {
+  predicted: number;
+  actual: number;
+  true_positive: number;
+  precision: number;
+  recall: number;
+}
+
+export interface CalibrationRunMetadata {
+  harness_version: string;
+  model_version: string;
+  data_source: string;
+  run_at: string;
+  symbols: string[];
+  start_date: string;
+  end_date: string;
+  horizon_days: number;
+}
+
+export interface CalibrationReport {
+  predictions_total: number;
+  predictions_correct: number;
+  accuracy: number;
+  by_symbol: Record<string, CalibrationSymbolStats>;
+  by_window: Record<string, CalibrationSymbolStats>;
+  by_outcome: Record<string, CalibrationOutcomeStats>;
+  samples: unknown[];
+  run_metadata: CalibrationRunMetadata;
+}

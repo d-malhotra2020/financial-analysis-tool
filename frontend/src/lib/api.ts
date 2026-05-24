@@ -6,6 +6,7 @@ import type {
   GainersResponse,
   LosersResponse,
   NewsResponse,
+  CalibrationReport,
 } from "./types";
 
 const BASE = "";
@@ -45,4 +46,8 @@ export async function searchStocksAPI(query: string): Promise<StockInfo[]> {
     `/api/v1/stocks/search?query=${encodeURIComponent(query)}&limit=10`
   );
   return data.results;
+}
+
+export async function getCalibrationLatest(): Promise<CalibrationReport> {
+  return fetchJSON("/api/v1/calibration/latest");
 }
