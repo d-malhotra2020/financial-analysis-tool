@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Source_Serif_4, JetBrains_Mono } from "next/font/google";
+import TopNav from "@/components/TopNav";
+import Footer from "@/components/Footer";
 import "./globals.css";
 
 const sourceSerif = Source_Serif_4({
@@ -29,7 +31,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${sourceSerif.variable} ${jetbrainsMono.variable} antialiased`}>
+        <TopNav />
         {children}
+        <Footer />
       </body>
     </html>
   );
