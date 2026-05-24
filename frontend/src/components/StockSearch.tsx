@@ -14,7 +14,9 @@ export default function StockSearch({ onSelect }: Props) {
   const [results, setResults] = useState<StockInfo[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [focused, setFocused] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
@@ -23,6 +25,24 @@ export default function StockSearch({ onSelect }: Props) {
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  // Slash-to-focus keyboard shortcut.
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key !== "/") return;
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      const isEditable =
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        (e.target as HTMLElement | null)?.isContentEditable;
+      if (isEditable) return;
+      e.preventDefault();
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
   }, []);
 
   const handleChange = useCallback((value: string) => {
@@ -84,67 +104,201 @@ export default function StockSearch({ onSelect }: Props) {
     [query, onSelect]
   );
 
+  const borderColor = focused ? "var(--accent)" : "var(--border)";
+
   return (
-    <div ref={ref} className="relative w-full">
-      <form onSubmit={handleSubmit} className="flex items-end gap-6">
-        <div className="flex-1">
-          <label className="smallcaps block mb-2" htmlFor="ticker-input">
-            Lookup ticker
-          </label>
+    <div ref={ref} style={{ position: "relative", width: "100%" }}>
+      <form onSubmit={handleSubmit}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "stretch",
+            background: "var(--surface)",
+            border: `1px solid ${borderColor}`,
+            borderRadius: "4px",
+            transition: "border-color 0.12s ease",
+          }}
+        >
+          {/* Slash icon */}
+          <span
+            aria-hidden
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "0 14px",
+              color: "var(--text-muted)",
+              fontFamily: "var(--font-mono), monospace",
+              fontSize: "14px",
+            }}
+          >
+            /
+          </span>
+
           <input
-            id="ticker-input"
+            ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => handleChange(e.target.value)}
-            placeholder="e.g. AAPL, NVDA, ^GSPC"
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            placeholder="Search any ticker (try AAPL, NVDA, TSLA)…"
             autoComplete="off"
             spellCheck={false}
-            className="w-full font-mono tabular bg-transparent border-0 border-b border-[var(--ink)] focus:outline-none focus:border-[var(--accent)] py-2 text-[20px] uppercase placeholder:normal-case placeholder:text-[var(--muted)] placeholder:lowercase"
-            style={{ letterSpacing: "0.04em" }}
+            style={{
+              flex: 1,
+              minWidth: 0,
+              background: "transparent",
+              border: 0,
+              outline: "none",
+              padding: "12px 0",
+              color: "var(--text)",
+              fontFamily: "var(--font-sans), sans-serif",
+              fontSize: "14px",
+            }}
           />
+
+          {/* Random button */}
+          <button
+            type="button"
+            onClick={() => handleSelect(getRandomStock().symbol)}
+            className="smallcaps-mono"
+            style={{
+              padding: "0 14px",
+              background: "transparent",
+              border: 0,
+              borderLeft: "1px solid var(--border)",
+              color: "var(--text-soft)",
+              cursor: "pointer",
+            }}
+          >
+            random
+          </button>
+
+          {/* Keyboard hint */}
+          <span
+            aria-hidden
+            className="font-mono tabular"
+            style={{
+              alignSelf: "center",
+              marginRight: "10px",
+              marginLeft: "10px",
+              padding: "2px 8px",
+              border: "1px solid var(--border)",
+              borderRadius: "3px",
+              fontSize: "11px",
+              color: "var(--text-muted)",
+            }}
+          >
+            /
+          </span>
         </div>
-        <button
-          type="submit"
-          className="smallcaps-mono px-4 py-3 border border-[var(--ink)] text-[var(--ink)] hover:bg-[var(--ink)] hover:text-[var(--paper)] transition-colors"
-        >
-          Go
-        </button>
-        <button
-          type="button"
-          onClick={() => handleSelect(getRandomStock().symbol)}
-          className="smallcaps-mono px-4 py-3 border border-[var(--rule)] text-[var(--ink-soft)] hover:border-[var(--ink)] hover:text-[var(--ink)] transition-colors"
-        >
-          Random
-        </button>
       </form>
 
       {open && (results.length > 0 || loading) && (
-        <div className="absolute z-50 w-full mt-1 bg-[var(--paper)] border border-[var(--rule)] shadow-none">
+        <div
+          style={{
+            position: "absolute",
+            zIndex: 50,
+            width: "100%",
+            marginTop: "4px",
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "4px",
+            overflow: "hidden",
+          }}
+        >
           {loading && (
-            <p className="smallcaps-mono px-4 py-2 border-b border-[var(--rule)]">
-              Searching all markets…
+            <p
+              className="smallcaps-mono"
+              style={{
+                padding: "10px 14px",
+                borderBottom: "1px solid var(--border)",
+              }}
+            >
+              // searching markets…
             </p>
           )}
-          <ul className="max-h-[420px] overflow-y-auto">
+          <ul
+            style={{
+              maxHeight: "420px",
+              overflowY: "auto",
+              listStyle: "none",
+              margin: 0,
+              padding: 0,
+            }}
+          >
             {results.map((stock, idx) => (
               <li key={stock.symbol}>
                 <button
                   onClick={() => handleSelect(stock.symbol)}
-                  className="w-full flex items-baseline justify-between px-4 py-3 hover:bg-[var(--paper-soft)] transition-colors text-left"
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "baseline",
+                    justifyContent: "space-between",
+                    padding: "10px 14px",
+                    background: "transparent",
+                    border: 0,
+                    cursor: "pointer",
+                    textAlign: "left",
+                    transition: "background 0.1s ease",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.background = "var(--surface-2)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = "transparent")
+                  }
                 >
-                  <span className="flex items-baseline gap-3 min-w-0">
-                    <span className="font-mono tabular text-[15px] text-[var(--ink)] w-24 shrink-0">
+                  <span
+                    style={{
+                      display: "flex",
+                      alignItems: "baseline",
+                      gap: "12px",
+                      minWidth: 0,
+                    }}
+                  >
+                    <span
+                      className="font-mono tabular"
+                      style={{
+                        fontSize: "13px",
+                        color: "var(--text)",
+                        fontWeight: 500,
+                        width: "80px",
+                        flexShrink: 0,
+                      }}
+                    >
                       {stock.symbol}
                     </span>
-                    <span className="font-serif text-[15px] text-[var(--ink-soft)] truncate">
+                    <span
+                      style={{
+                        fontSize: "13px",
+                        color: "var(--text-soft)",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {stock.name}
                     </span>
                   </span>
-                  <span className="smallcaps shrink-0">
+                  <span
+                    className="smallcaps-mono"
+                    style={{ flexShrink: 0, marginLeft: "12px" }}
+                  >
                     {stock.exchange} · {stock.sector}
                   </span>
                 </button>
-                {idx < results.length - 1 && <hr className="rule" />}
+                {idx < results.length - 1 && (
+                  <hr
+                    style={{
+                      border: 0,
+                      borderTop: "1px solid var(--border)",
+                      margin: 0,
+                    }}
+                  />
+                )}
               </li>
             ))}
           </ul>
