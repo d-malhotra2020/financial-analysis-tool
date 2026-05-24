@@ -123,21 +123,65 @@ class SimpleTechnicalAnalysisService:
         return rsi
     
     def generate_simple_predictions(self, prices: List[float]) -> Dict:
-        """Generate simple price predictions"""
+        """Generate simple price predictions.
+
+        Deterministic, pure function of the price series. Called by both the
+        live `/api/v1/stocks/{symbol}` endpoint and the backtest harness — they
+        must share this code path so the manifesto holds (live == backtest).
+        """
         if len(prices) < 10:
             return {"error": "Insufficient data for predictions"}
-        
+
         current_price = prices[-1]
         recent_trend = sum(prices[-5:]) / 5 - sum(prices[-10:-5]) / 5
-        
+
         # Simple trend-based predictions
         pred_1d = current_price + (recent_trend * 0.2)
-        pred_7d = current_price + (recent_trend * 1.0) 
+        pred_7d = current_price + (recent_trend * 1.0)
         pred_30d = current_price + (recent_trend * 3.0)
-        
+
         return {
             '1d': round(pred_1d, 2),
             '7d': round(pred_7d, 2),
             '30d': round(pred_30d, 2),
-            'confidence': 0.75  # Simulated confidence
+            'confidence': 0.75  # Heuristic, not measured. Real accuracy lives
+            # in /api/v1/calibration/latest, sourced from app/backtest/.
+        }
+
+    def predict_direction(self, prices: List[float]) -> Dict:
+        """Predict next-bar direction (up/down/flat) from a price series.
+
+        This is the single source of truth for "what direction does the model
+        think the price will go next?" Both the backtest harness and any live
+        consumer call this function with the same series semantics: `prices`
+        is a list of closes through the as-of bar, inclusive. Lookahead is the
+        caller's responsibility — pass only data available at the prediction
+        time.
+
+        Returns a dict with:
+            direction: "up" | "down" | "flat"
+            predicted_price_1d: float
+            current_price: float
+            confidence: float (heuristic; calibrated by backtest harness)
+        """
+        preds = self.generate_simple_predictions(prices)
+        if "error" in preds:
+            return {"error": preds["error"]}
+
+        current_price = float(prices[-1])
+        predicted_1d = float(preds["1d"])
+        delta = predicted_1d - current_price
+
+        if delta > 0:
+            direction = "up"
+        elif delta < 0:
+            direction = "down"
+        else:
+            direction = "flat"
+
+        return {
+            "direction": direction,
+            "predicted_price_1d": predicted_1d,
+            "current_price": current_price,
+            "confidence": preds.get("confidence", 0.5),
         }

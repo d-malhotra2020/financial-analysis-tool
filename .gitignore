@@ -5,3 +5,6 @@ venv/
 .env.local
 *.egg-info/
 dist/
+
+# Backtest harness: cache local yfinance CSVs but commit calibration reports.
+data/backtest_cache/
