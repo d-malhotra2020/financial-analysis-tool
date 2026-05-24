@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import StatusBar from "@/components/StatusBar";
 import TickerTape from "@/components/TickerTape";
 import TopNav from "@/components/TopNav";
@@ -20,6 +20,8 @@ import type {
   ChartType,
 } from "@/lib/types";
 
+const DEFAULT_SYMBOL = "SPY";
+
 export default function Dashboard() {
   const [stockData, setStockData] = useState<StockDetailType | null>(null);
   const [chartData, setChartData] = useState<ChartData | null>(null);
@@ -27,7 +29,8 @@ export default function Dashboard() {
   const [chartLoading, setChartLoading] = useState(false);
   const [timeframe, setTimeframe] = useState<Timeframe>("1y");
   const [chartType, setChartType] = useState<ChartType>("candlestick");
-  const [currentSymbol, setCurrentSymbol] = useState<string | null>(null);
+  const [currentSymbol, setCurrentSymbol] =
+    useState<string | null>(DEFAULT_SYMBOL);
 
   const loadStock = useCallback(
     async (symbol: string) => {
@@ -51,6 +54,13 @@ export default function Dashboard() {
     [timeframe]
   );
 
+  // Fire the default ticker fetch once on mount so the chart is populated
+  // immediately on first paint instead of waiting for a click.
+  useEffect(() => {
+    loadStock(DEFAULT_SYMBOL);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleTimeframeChange = useCallback(
     async (tf: Timeframe) => {
       setTimeframe(tf);
@@ -69,12 +79,6 @@ export default function Dashboard() {
     [currentSymbol]
   );
 
-  const clearSelection = useCallback(() => {
-    setCurrentSymbol(null);
-    setStockData(null);
-    setChartData(null);
-  }, []);
-
   return (
     <div className="page-glow">
       <StatusBar />
@@ -84,61 +88,37 @@ export default function Dashboard() {
       <main>
         <RecruiterIntro />
 
-        {currentSymbol ? (
-          <>
-            <section
-              className="page-frame"
-              style={{ paddingTop: "8px", paddingBottom: "16px" }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: "12px",
-                  gap: "16px",
-                }}
-              >
-                <p className="smallcaps-mono">// ISSUE LOOKUP</p>
-                <button
-                  onClick={clearSelection}
-                  className="smallcaps-mono"
-                  style={{
-                    background: "transparent",
-                    border: "1px solid var(--border)",
-                    borderRadius: "3px",
-                    padding: "6px 10px",
-                    cursor: "pointer",
-                    color: "var(--text-soft)",
-                    transition: "color 0.12s ease, border-color 0.12s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = "var(--text)";
-                    e.currentTarget.style.borderColor =
-                      "var(--border-strong)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = "var(--text-soft)";
-                    e.currentTarget.style.borderColor = "var(--border)";
-                  }}
-                >
-                  ← BACK TO MARKET OVERVIEW
-                </button>
-              </div>
-              <StockSearch onSelect={loadStock} />
-            </section>
+        {/* Search row — switch tickers in place */}
+        <section
+          className="page-frame"
+          style={{ paddingTop: "8px", paddingBottom: "16px" }}
+        >
+          <StockSearch onSelect={loadStock} />
+        </section>
 
-            <section
-              className="page-frame"
-              style={{ paddingTop: "8px", paddingBottom: "24px" }}
+        {/* Main grid: chart column + market overview sidebar */}
+        <section
+          className="page-frame"
+          style={{ paddingBottom: "24px" }}
+        >
+          <div
+            className="dashboard-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 1fr) 320px",
+              gap: "20px",
+              alignItems: "start",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "20px",
+                minWidth: 0,
+              }}
             >
               <StockDetail data={stockData} loading={stockLoading} />
-            </section>
-
-            <section
-              className="page-frame"
-              style={{ paddingBottom: "32px" }}
-            >
               <StockChart
                 data={chartData}
                 loading={chartLoading}
@@ -147,37 +127,35 @@ export default function Dashboard() {
                 onTimeframeChange={handleTimeframeChange}
                 onChartTypeChange={setChartType}
               />
-            </section>
+            </div>
+            <aside style={{ minWidth: 0 }}>
+              <MarketOverview onStockSelect={loadStock} />
+            </aside>
+          </div>
+        </section>
 
-            <section
-              className="page-frame"
-              style={{ paddingBottom: "32px" }}
-            >
-              <StockNews symbol={currentSymbol} />
-            </section>
-
-            <CalibrationCard />
-          </>
-        ) : (
-          <>
-            <section
-              className="page-frame"
-              style={{ paddingTop: "8px", paddingBottom: "16px" }}
-            >
-              <p
-                className="smallcaps-mono"
-                style={{ marginBottom: "10px" }}
-              >
-                // ISSUE LOOKUP
-              </p>
-              <StockSearch onSelect={loadStock} />
-            </section>
-
-            <MarketOverview onStockSelect={loadStock} />
-
-            <CalibrationCard />
-          </>
-        )}
+        {/* News + calibration row */}
+        <section
+          className="page-frame"
+          style={{ paddingBottom: "32px" }}
+        >
+          <div
+            className="dashboard-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 1fr) 320px",
+              gap: "20px",
+              alignItems: "start",
+            }}
+          >
+            <div style={{ minWidth: 0 }}>
+              {currentSymbol && <StockNews symbol={currentSymbol} />}
+            </div>
+            <aside style={{ minWidth: 0 }}>
+              <CalibrationCard />
+            </aside>
+          </div>
+        </section>
       </main>
 
       <Footer />
