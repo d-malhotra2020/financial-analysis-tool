@@ -29,32 +29,33 @@ const CHART_TYPES: { value: ChartType; label: string }[] = [
   { value: "volume", label: "Volume" },
 ];
 
-// Editorial-quant palette in actual CSS color values (must be concrete for the
-// chart library, which doesn't read CSS variables).
-const PAPER = "#f4f1ea";
-const INK = "#1f2937";
-const INK_SOFT = "#4a5260";
-const RULE = "#d9d2c2";
-const UP = "#0f4c2c";
-const DOWN = "#7a2d1d";
-const ACCENT = "#a6883c";
+// keep in sync with globals.css — lightweight-charts needs literal hex values
+// since it can't read CSS variables.
+const BG = "#0a0a0c";
+const SURFACE = "#111114";
+const GRID = "#1f1f23";
+const TEXT = "#e7e7ea";
+const TEXT_SOFT = "#a1a1a6";
+const UP = "#22c55e";
+const DOWN = "#ef4444";
+const ACCENT = "#3b82f6";
 
 function timeframeCaption(tf: Timeframe): string {
   switch (tf) {
     case "1d":
-      return "Price · 5-min · last session";
+      return "// PRICE · 5-MIN · LAST SESSION";
     case "1w":
-      return "Price · 30-min · last week";
+      return "// PRICE · 30-MIN · LAST WEEK";
     case "1mo":
-      return "Price · daily · last month";
+      return "// PRICE · DAILY · LAST MONTH";
     case "3mo":
-      return "Price · daily · last 3 months";
+      return "// PRICE · DAILY · LAST 3 MONTHS";
     case "1y":
-      return "Price · daily · last 1 year";
+      return "// PRICE · DAILY · LAST 1Y";
     case "5y":
-      return "Price · weekly · last 5 years";
+      return "// PRICE · WEEKLY · LAST 5Y";
     case "max":
-      return "Price · monthly · full history";
+      return "// PRICE · MONTHLY · FULL HISTORY";
   }
 }
 
@@ -88,14 +89,14 @@ export default function StockChart({
       width: container.clientWidth,
       height: container.clientHeight,
       layout: {
-        background: { color: PAPER },
-        textColor: INK_SOFT,
+        background: { color: SURFACE },
+        textColor: TEXT_SOFT,
         fontFamily: "var(--font-mono), ui-monospace, monospace",
         fontSize: 11,
       },
       grid: {
-        vertLines: { color: "rgba(217, 210, 194, 0.4)" },
-        horzLines: { color: "rgba(217, 210, 194, 0.4)" },
+        vertLines: { color: GRID },
+        horzLines: { color: GRID },
       },
       crosshair: {
         mode: lwc.CrosshairMode.Normal,
@@ -103,10 +104,10 @@ export default function StockChart({
         horzLine: { color: ACCENT, width: 1, style: lwc.LineStyle.Dashed },
       },
       rightPriceScale: {
-        borderColor: RULE,
+        borderColor: GRID,
       },
       timeScale: {
-        borderColor: RULE,
+        borderColor: GRID,
         timeVisible: isIntraday,
       },
     });
@@ -146,11 +147,11 @@ export default function StockChart({
       series.setData(uniqueData);
     } else if (chartType === "line") {
       const series = chart.addSeries(lwc.LineSeries, {
-        color: INK,
+        color: TEXT,
         lineWidth: 1,
         crosshairMarkerRadius: 4,
-        crosshairMarkerBorderColor: INK,
-        crosshairMarkerBackgroundColor: PAPER,
+        crosshairMarkerBorderColor: TEXT,
+        crosshairMarkerBackgroundColor: SURFACE,
       });
       series.setData(uniqueData.map((d) => ({ time: d.time, value: d.close })));
     } else if (chartType === "area") {
@@ -160,8 +161,8 @@ export default function StockChart({
       const tone = isUp ? UP : DOWN;
 
       const series = chart.addSeries(lwc.AreaSeries, {
-        topColor: isUp ? "rgba(15, 76, 44, 0.18)" : "rgba(122, 45, 29, 0.18)",
-        bottomColor: isUp ? "rgba(15, 76, 44, 0.01)" : "rgba(122, 45, 29, 0.01)",
+        topColor: isUp ? "rgba(34, 197, 94, 0.22)" : "rgba(239, 68, 68, 0.22)",
+        bottomColor: isUp ? "rgba(34, 197, 94, 0.01)" : "rgba(239, 68, 68, 0.01)",
         lineColor: tone,
         lineWidth: 1,
       });
@@ -186,11 +187,11 @@ export default function StockChart({
       }
     } else if (chartType === "volume") {
       const priceSeries = chart.addSeries(lwc.LineSeries, {
-        color: INK,
+        color: TEXT,
         lineWidth: 1,
         crosshairMarkerRadius: 4,
-        crosshairMarkerBorderColor: INK,
-        crosshairMarkerBackgroundColor: PAPER,
+        crosshairMarkerBorderColor: TEXT,
+        crosshairMarkerBackgroundColor: SURFACE,
         crosshairMarkerVisible: true,
         lastValueVisible: true,
         priceLineVisible: true,
@@ -219,11 +220,11 @@ export default function StockChart({
             value: d.value,
             color: isHigh
               ? isUp
-                ? "rgba(15, 76, 44, 0.7)"
-                : "rgba(122, 45, 29, 0.7)"
+                ? "rgba(34, 197, 94, 0.75)"
+                : "rgba(239, 68, 68, 0.75)"
               : isUp
-              ? "rgba(15, 76, 44, 0.35)"
-              : "rgba(122, 45, 29, 0.35)",
+              ? "rgba(34, 197, 94, 0.35)"
+              : "rgba(239, 68, 68, 0.35)",
           };
         })
       );
@@ -252,47 +253,68 @@ export default function StockChart({
     };
   }, [renderChart]);
 
+  const segmentBtn = (
+    isActive: boolean,
+    isFirst: boolean
+  ): React.CSSProperties => ({
+    fontFamily: "var(--font-mono), monospace",
+    fontSize: "10px",
+    textTransform: "uppercase",
+    letterSpacing: "0.1em",
+    fontWeight: 500,
+    padding: "8px 12px",
+    background: isActive ? "var(--accent)" : "transparent",
+    color: isActive ? "var(--text)" : "var(--text-soft)",
+    border: 0,
+    borderLeft: isFirst ? 0 : "1px solid var(--border)",
+    cursor: "pointer",
+    transition: "background 0.12s ease",
+  });
+
   return (
     <div>
       {/* Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-5">
-        <div className="flex flex-wrap gap-0 border border-[var(--rule)]">
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          gap: "16px",
+          flexWrap: "wrap",
+          marginBottom: "12px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            border: "1px solid var(--border)",
+            borderRadius: "4px",
+            overflow: "hidden",
+          }}
+        >
           {CHART_TYPES.map((ct, i) => (
             <button
               key={ct.value}
               onClick={() => onChartTypeChange(ct.value)}
-              className={`smallcaps-mono px-3 py-2 transition-colors ${
-                i > 0 ? "border-l border-[var(--rule)]" : ""
-              }`}
-              style={{
-                background:
-                  chartType === ct.value ? "var(--ink)" : "transparent",
-                color:
-                  chartType === ct.value
-                    ? "var(--paper)"
-                    : "var(--ink-soft)",
-              }}
+              style={segmentBtn(chartType === ct.value, i === 0)}
             >
               {ct.label}
             </button>
           ))}
         </div>
-        <div className="flex flex-wrap gap-0 border border-[var(--rule)]">
+        <div
+          style={{
+            display: "flex",
+            border: "1px solid var(--border)",
+            borderRadius: "4px",
+            overflow: "hidden",
+          }}
+        >
           {TIMEFRAMES.map((tf, i) => (
             <button
               key={tf.value}
               onClick={() => onTimeframeChange(tf.value)}
-              className={`smallcaps-mono px-3 py-2 transition-colors ${
-                i > 0 ? "border-l border-[var(--rule)]" : ""
-              }`}
-              style={{
-                background:
-                  timeframe === tf.value ? "var(--ink)" : "transparent",
-                color:
-                  timeframe === tf.value
-                    ? "var(--paper)"
-                    : "var(--ink-soft)",
-              }}
+              style={segmentBtn(timeframe === tf.value, i === 0)}
             >
               {tf.label}
             </button>
@@ -300,17 +322,36 @@ export default function StockChart({
         </div>
       </div>
 
-      <div className="relative h-[420px] border-t border-b border-[var(--rule)]">
+      <div
+        style={{
+          position: "relative",
+          height: "420px",
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: "4px",
+          overflow: "hidden",
+        }}
+      >
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-[var(--paper)]/80 z-10">
-            <p className="smallcaps-mono">Loading…</p>
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "rgba(10, 10, 12, 0.75)",
+              zIndex: 10,
+            }}
+          >
+            <p className="smallcaps-mono">// LOADING…</p>
           </div>
         )}
-        <div ref={containerRef} className="w-full h-full" />
+        <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
       </div>
 
-      <p className="smallcaps mt-3">
-        {timeframeCaption(timeframe)} · source: yfinance
+      <p className="smallcaps-mono" style={{ marginTop: "10px" }}>
+        {timeframeCaption(timeframe)} · SOURCE: YFINANCE
       </p>
     </div>
   );
