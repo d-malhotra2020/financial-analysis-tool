@@ -1,0 +1,20 @@
+# Railway build configuration.
+#
+# Without this file, Nixpacks auto-detects requirements.txt and treats the
+# project as a Python-only app. The Next.js frontend at frontend/ never gets
+# built, frontend/out/ is missing at runtime, and app/routers/dashboard.py
+# falls back to serving the legacy Jinja template instead of the editorial-
+# quant Next.js UI.
+#
+# What this does:
+#   1. Adds the Node provider alongside Python so npm is available at build time.
+#   2. Adds a build phase that installs frontend deps and runs `next build` with
+#      the static export (next.config.ts has output: "export", distDir: "out").
+#   3. Leaves the start command alone — Procfile still owns `uvicorn app.main:app`.
+
+providers = ["python", "node"]
+
+[phases.build]
+cmds = [
+  "cd frontend && npm ci && npm run build"
+]
