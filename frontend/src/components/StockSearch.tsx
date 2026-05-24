@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Search, Shuffle, X, Loader2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { searchStocks, getRandomStock } from "@/lib/stocks";
 import { searchStocksAPI } from "@/lib/api";
 import type { StockInfo } from "@/lib/types";
@@ -58,6 +56,7 @@ export default function StockSearch({ onSelect }: Props) {
           setResults(merged.slice(0, 12));
           setOpen(true);
         } catch {
+          // silent — fall back to local results
         } finally {
           setLoading(false);
         }
@@ -67,7 +66,7 @@ export default function StockSearch({ onSelect }: Props) {
 
   const handleSelect = useCallback(
     (symbol: string) => {
-      setQuery(symbol);
+      setQuery(symbol.toUpperCase());
       setOpen(false);
       onSelect(symbol);
     },
@@ -87,78 +86,70 @@ export default function StockSearch({ onSelect }: Props) {
 
   return (
     <div ref={ref} className="relative w-full">
-      <form onSubmit={handleSubmit} className="flex gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400" />
+      <form onSubmit={handleSubmit} className="flex items-end gap-6">
+        <div className="flex-1">
+          <label className="smallcaps block mb-2" htmlFor="ticker-input">
+            Lookup ticker
+          </label>
           <input
+            id="ticker-input"
             type="text"
             value={query}
             onChange={(e) => handleChange(e.target.value)}
-            placeholder="Search any stock or company (e.g., AAPL, GameStop, Bitcoin)"
-            className="w-full pl-12 pr-10 py-3.5 bg-zinc-900/50 border border-zinc-700/50 rounded-xl text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 transition-all"
+            placeholder="e.g. AAPL, NVDA, ^GSPC"
+            autoComplete="off"
+            spellCheck={false}
+            className="w-full font-mono tabular bg-transparent border-0 border-b border-[var(--ink)] focus:outline-none focus:border-[var(--accent)] py-2 text-[20px] uppercase placeholder:normal-case placeholder:text-[var(--muted)] placeholder:lowercase"
+            style={{ letterSpacing: "0.04em" }}
           />
-          {query && (
-            <button
-              type="button"
-              onClick={() => { setQuery(""); setOpen(false); setResults([]); }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
         </div>
         <button
           type="submit"
-          className="px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-blue-500/20 active:scale-95"
+          className="smallcaps-mono px-4 py-3 border border-[var(--ink)] text-[var(--ink)] hover:bg-[var(--ink)] hover:text-[var(--paper)] transition-colors"
         >
-          Search
+          Go
         </button>
         <button
           type="button"
           onClick={() => handleSelect(getRandomStock().symbol)}
-          className="px-4 py-3.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl transition-all border border-zinc-700/50 active:scale-95 flex items-center gap-2"
+          className="smallcaps-mono px-4 py-3 border border-[var(--rule)] text-[var(--ink-soft)] hover:border-[var(--ink)] hover:text-[var(--ink)] transition-colors"
         >
-          <Shuffle className="h-4 w-4" />
-          <span className="hidden sm:inline">Random</span>
+          Random
         </button>
       </form>
 
-      <AnimatePresence>
-        {open && results.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.15 }}
-            className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-700/50 rounded-xl shadow-2xl shadow-black/40 overflow-hidden backdrop-blur-xl"
-          >
-            {loading && (
-              <div className="flex items-center gap-2 px-4 py-2 border-b border-zinc-800 text-xs text-zinc-500">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                Searching all markets...
-              </div>
-            )}
-            <div className="max-h-[400px] overflow-y-auto">
-              {results.map((stock) => (
+      {open && (results.length > 0 || loading) && (
+        <div className="absolute z-50 w-full mt-1 bg-[var(--paper)] border border-[var(--rule)] shadow-none">
+          {loading && (
+            <p className="smallcaps-mono px-4 py-2 border-b border-[var(--rule)]">
+              Searching all markets…
+            </p>
+          )}
+          <ul className="max-h-[420px] overflow-y-auto">
+            {results.map((stock, idx) => (
+              <li key={stock.symbol}>
                 <button
-                  key={stock.symbol}
                   onClick={() => handleSelect(stock.symbol)}
-                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-zinc-800/80 transition-colors text-left"
+                  className="w-full flex items-baseline justify-between px-4 py-3 hover:bg-[var(--paper-soft)] transition-colors text-left"
                 >
-                  <div>
-                    <span className="font-semibold text-zinc-100">{stock.symbol}</span>
-                    <span className="ml-2 text-xs text-zinc-500">{stock.exchange}</span>
-                    <div className="text-sm text-zinc-400">{stock.name}</div>
-                  </div>
-                  <span className="text-xs px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-400 border border-zinc-700/50">
-                    {stock.sector}
+                  <span className="flex items-baseline gap-3 min-w-0">
+                    <span className="font-mono tabular text-[15px] text-[var(--ink)] w-24 shrink-0">
+                      {stock.symbol}
+                    </span>
+                    <span className="font-serif text-[15px] text-[var(--ink-soft)] truncate">
+                      {stock.name}
+                    </span>
+                  </span>
+                  <span className="smallcaps shrink-0">
+                    {stock.exchange} · {stock.sector}
                   </span>
                 </button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                {idx < results.length - 1 && <hr className="rule" />}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
