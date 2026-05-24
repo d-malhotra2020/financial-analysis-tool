@@ -46,75 +46,131 @@ export default function StockNews({ symbol }: Props) {
 
   return (
     <section>
-      <p className="smallcaps mb-4">Selected coverage · {symbol}</p>
-      <hr className="rule mb-2" />
+      <p className="smallcaps-mono" style={{ marginBottom: "12px" }}>
+        // SELECTED COVERAGE · {symbol}
+      </p>
 
       {loading ? (
-        <div className="py-6 space-y-4 animate-pulse">
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="space-y-2">
-              <div className="h-5 bg-[var(--paper-soft)] w-3/4" />
-              <div className="h-3 bg-[var(--paper-soft)] w-1/3" />
+            <div
+              key={i}
+              style={{
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
+                borderRadius: "4px",
+                padding: "14px",
+              }}
+            >
+              <div
+                style={{
+                  height: "12px",
+                  background: "var(--surface-2)",
+                  width: "30%",
+                  marginBottom: "10px",
+                }}
+              />
+              <div
+                style={{
+                  height: "18px",
+                  background: "var(--surface-2)",
+                  width: "75%",
+                }}
+              />
             </div>
           ))}
         </div>
       ) : articles.length === 0 ? (
-        <p className="font-serif italic text-[var(--ink-soft)] py-6">
+        <div
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "4px",
+            padding: "20px",
+            color: "var(--text-soft)",
+            fontSize: "14px",
+          }}
+        >
           No coverage available for {symbol}.
-        </p>
+        </div>
       ) : (
-        <ul>
-          {articles.map((article, i) => (
-            <li key={i}>
-              <article className="py-5">
-                <p
-                  className="smallcaps-mono mb-2"
-                  style={{ letterSpacing: "0.1em" }}
+        <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+          {articles.map((article, i) => {
+            const headlineEl = (
+              <h3
+                style={{
+                  fontFamily: "var(--font-sans), sans-serif",
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  color: "var(--text)",
+                  lineHeight: 1.4,
+                  margin: 0,
+                }}
+              >
+                {article.headline}
+              </h3>
+            );
+            return (
+              <li
+                key={i}
+                style={{
+                  marginBottom: i < articles.length - 1 ? "10px" : 0,
+                }}
+              >
+                <article
+                  style={{
+                    background: "var(--surface)",
+                    border: "1px solid var(--border)",
+                    borderRadius: "4px",
+                    padding: "14px",
+                    transition: "background 0.12s ease",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.background = "var(--surface-2)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = "var(--surface)")
+                  }
                 >
-                  {(article.source ?? "Wire").toUpperCase()} ·{" "}
-                  {timeAgo(article.published_at)} ·{" "}
-                  {(article.category ?? "general").toUpperCase()}
-                </p>
-                {article.url ? (
-                  <a
-                    href={article.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="editorial-link"
+                  <p
+                    className="smallcaps-mono"
+                    style={{ marginBottom: "8px" }}
                   >
-                    <h3
-                      className="font-serif text-[var(--ink)]"
+                    {(article.source ?? "WIRE").toUpperCase()} ·{" "}
+                    {timeAgo(article.published_at)} · {symbol}
+                  </p>
+                  {article.url ? (
+                    <a
+                      href={article.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       style={{
-                        fontSize: "1.25rem",
-                        lineHeight: 1.25,
-                        fontWeight: 500,
+                        textDecoration: "none",
+                        color: "inherit",
                       }}
                     >
-                      {article.headline}
-                    </h3>
-                  </a>
-                ) : (
-                  <h3
-                    className="font-serif text-[var(--ink)]"
-                    style={{
-                      fontSize: "1.25rem",
-                      lineHeight: 1.25,
-                      fontWeight: 500,
-                    }}
-                  >
-                    {article.headline}
-                  </h3>
-                )}
-                <p
-                  className="font-serif text-[var(--ink-soft)] mt-2"
-                  style={{ fontSize: "16px", lineHeight: 1.55 }}
-                >
-                  {article.summary}
-                </p>
-              </article>
-              {i < articles.length - 1 && <hr className="rule" />}
-            </li>
-          ))}
+                      {headlineEl}
+                    </a>
+                  ) : (
+                    headlineEl
+                  )}
+                  {article.summary && (
+                    <p
+                      style={{
+                        fontFamily: "var(--font-sans), sans-serif",
+                        fontSize: "13px",
+                        lineHeight: 1.55,
+                        color: "var(--text-soft)",
+                        marginTop: "8px",
+                      }}
+                    >
+                      {article.summary}
+                    </p>
+                  )}
+                </article>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>
