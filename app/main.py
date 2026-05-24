@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 import uvicorn
 import os
 import asyncio
-from .routers import stocks, portfolio, predictions, analysis, sp500, dashboard
+from .routers import stocks, portfolio, predictions, analysis, sp500, dashboard, calibration
 from .services.database import init_db
 from .services.sp500_service import sp500_service
 from .utils.config import get_settings
@@ -37,6 +37,7 @@ app.include_router(sp500.router, prefix="/api/v1/sp500", tags=["S&P 500"])
 app.include_router(portfolio.router, prefix="/api/v1/portfolio", tags=["Portfolio"])
 app.include_router(predictions.router, prefix="/api/v1/predictions", tags=["Predictions"])
 app.include_router(analysis.router, prefix="/api/v1/analysis", tags=["Analysis"])
+app.include_router(calibration.router, prefix="/api/v1/calibration", tags=["Calibration"])
 
 @app.on_event("startup")
 async def startup_event():
