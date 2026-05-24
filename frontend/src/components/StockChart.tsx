@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useCallback, useState } from "react";
-import { motion } from "framer-motion";
 import type { ChartData, Timeframe, ChartType } from "@/lib/types";
 
 interface Props {
@@ -24,11 +23,40 @@ const TIMEFRAMES: { value: Timeframe; label: string }[] = [
 ];
 
 const CHART_TYPES: { value: ChartType; label: string }[] = [
-  { value: "candlestick", label: "Candlestick" },
+  { value: "candlestick", label: "Candle" },
   { value: "line", label: "Line" },
   { value: "area", label: "Area" },
   { value: "volume", label: "Volume" },
 ];
+
+// Editorial-quant palette in actual CSS color values (must be concrete for the
+// chart library, which doesn't read CSS variables).
+const PAPER = "#f4f1ea";
+const INK = "#1f2937";
+const INK_SOFT = "#4a5260";
+const RULE = "#d9d2c2";
+const UP = "#0f4c2c";
+const DOWN = "#7a2d1d";
+const ACCENT = "#a6883c";
+
+function timeframeCaption(tf: Timeframe): string {
+  switch (tf) {
+    case "1d":
+      return "Price · 5-min · last session";
+    case "1w":
+      return "Price · 30-min · last week";
+    case "1mo":
+      return "Price · daily · last month";
+    case "3mo":
+      return "Price · daily · last 3 months";
+    case "1y":
+      return "Price · daily · last 1 year";
+    case "5y":
+      return "Price · weekly · last 5 years";
+    case "max":
+      return "Price · monthly · full history";
+  }
+}
 
 export default function StockChart({
   data,
@@ -60,25 +88,25 @@ export default function StockChart({
       width: container.clientWidth,
       height: container.clientHeight,
       layout: {
-        background: { color: "transparent" },
-        textColor: "#a1a1aa",
-        fontFamily: "'Inter', sans-serif",
-        fontSize: 12,
+        background: { color: PAPER },
+        textColor: INK_SOFT,
+        fontFamily: "var(--font-mono), ui-monospace, monospace",
+        fontSize: 11,
       },
       grid: {
-        vertLines: { color: "rgba(63, 63, 70, 0.3)" },
-        horzLines: { color: "rgba(63, 63, 70, 0.3)" },
+        vertLines: { color: "rgba(217, 210, 194, 0.4)" },
+        horzLines: { color: "rgba(217, 210, 194, 0.4)" },
       },
       crosshair: {
         mode: lwc.CrosshairMode.Normal,
-        vertLine: { color: "rgba(59, 130, 246, 0.3)", width: 1, style: lwc.LineStyle.Dashed },
-        horzLine: { color: "rgba(59, 130, 246, 0.3)", width: 1, style: lwc.LineStyle.Dashed },
+        vertLine: { color: ACCENT, width: 1, style: lwc.LineStyle.Dashed },
+        horzLine: { color: ACCENT, width: 1, style: lwc.LineStyle.Dashed },
       },
       rightPriceScale: {
-        borderColor: "rgba(63, 63, 70, 0.3)",
+        borderColor: RULE,
       },
       timeScale: {
-        borderColor: "rgba(63, 63, 70, 0.3)",
+        borderColor: RULE,
         timeVisible: isIntraday,
       },
     });
@@ -88,7 +116,7 @@ export default function StockChart({
     const mapData = data.data.map((d) => ({
       time: isIntraday
         ? (Math.floor(new Date(d.timestamp).getTime() / 1000) as import("lightweight-charts").UTCTimestamp)
-        : d.timestamp.split(" ")[0] as string,
+        : (d.timestamp.split(" ")[0] as string),
       open: d.open,
       high: d.high,
       low: d.low,
@@ -108,33 +136,34 @@ export default function StockChart({
 
     if (chartType === "candlestick") {
       const series = chart.addSeries(lwc.CandlestickSeries, {
-        upColor: "#22c55e",
-        downColor: "#ef4444",
-        borderDownColor: "#ef4444",
-        borderUpColor: "#22c55e",
-        wickDownColor: "#ef4444",
-        wickUpColor: "#22c55e",
+        upColor: UP,
+        downColor: DOWN,
+        borderDownColor: DOWN,
+        borderUpColor: UP,
+        wickDownColor: DOWN,
+        wickUpColor: UP,
       });
       series.setData(uniqueData);
     } else if (chartType === "line") {
       const series = chart.addSeries(lwc.LineSeries, {
-        color: "#3b82f6",
-        lineWidth: 2,
-        crosshairMarkerRadius: 5,
-        crosshairMarkerBorderColor: "#3b82f6",
-        crosshairMarkerBackgroundColor: "#1e3a5f",
+        color: INK,
+        lineWidth: 1,
+        crosshairMarkerRadius: 4,
+        crosshairMarkerBorderColor: INK,
+        crosshairMarkerBackgroundColor: PAPER,
       });
       series.setData(uniqueData.map((d) => ({ time: d.time, value: d.close })));
     } else if (chartType === "area") {
       const firstClose = uniqueData[0]?.close ?? 0;
       const lastClose = uniqueData[uniqueData.length - 1]?.close ?? 0;
       const isUp = lastClose >= firstClose;
+      const tone = isUp ? UP : DOWN;
 
       const series = chart.addSeries(lwc.AreaSeries, {
-        topColor: isUp ? "rgba(34, 197, 94, 0.35)" : "rgba(239, 68, 68, 0.35)",
-        bottomColor: isUp ? "rgba(34, 197, 94, 0.02)" : "rgba(239, 68, 68, 0.02)",
-        lineColor: isUp ? "#22c55e" : "#ef4444",
-        lineWidth: 2,
+        topColor: isUp ? "rgba(15, 76, 44, 0.18)" : "rgba(122, 45, 29, 0.18)",
+        bottomColor: isUp ? "rgba(15, 76, 44, 0.01)" : "rgba(122, 45, 29, 0.01)",
+        lineColor: tone,
+        lineWidth: 1,
       });
       series.setData(uniqueData.map((d) => ({ time: d.time, value: d.close })));
 
@@ -147,7 +176,7 @@ export default function StockChart({
           smaData.push({ time: uniqueData[i].time, value: sum / smaLength });
         }
         const smaSeries = chart.addSeries(lwc.LineSeries, {
-          color: "rgba(250, 204, 21, 0.7)",
+          color: ACCENT,
           lineWidth: 1,
           crosshairMarkerVisible: false,
           priceLineVisible: false,
@@ -155,28 +184,13 @@ export default function StockChart({
         });
         smaSeries.setData(smaData);
       }
-
-      const volumeSeries = chart.addSeries(lwc.HistogramSeries, {
-        priceFormat: { type: "volume" },
-        priceScaleId: "volume",
-      });
-      chart.priceScale("volume").applyOptions({
-        scaleMargins: { top: 0.85, bottom: 0 },
-      });
-      volumeSeries.setData(
-        uniqueData.map((d) => ({
-          time: d.time,
-          value: d.value,
-          color: d.close >= d.open ? "rgba(34, 197, 94, 0.15)" : "rgba(239, 68, 68, 0.15)",
-        }))
-      );
     } else if (chartType === "volume") {
       const priceSeries = chart.addSeries(lwc.LineSeries, {
-        color: "rgba(99, 102, 241, 0.6)",
-        lineWidth: 2,
-        crosshairMarkerRadius: 5,
-        crosshairMarkerBorderColor: "#6366f1",
-        crosshairMarkerBackgroundColor: "#312e81",
+        color: INK,
+        lineWidth: 1,
+        crosshairMarkerRadius: 4,
+        crosshairMarkerBorderColor: INK,
+        crosshairMarkerBackgroundColor: PAPER,
         crosshairMarkerVisible: true,
         lastValueVisible: true,
         priceLineVisible: true,
@@ -204,8 +218,12 @@ export default function StockChart({
             time: d.time,
             value: d.value,
             color: isHigh
-              ? isUp ? "rgba(34, 197, 94, 0.7)" : "rgba(239, 68, 68, 0.7)"
-              : isUp ? "rgba(34, 197, 94, 0.3)" : "rgba(239, 68, 68, 0.3)",
+              ? isUp
+                ? "rgba(15, 76, 44, 0.7)"
+                : "rgba(122, 45, 29, 0.7)"
+              : isUp
+              ? "rgba(15, 76, 44, 0.35)"
+              : "rgba(122, 45, 29, 0.35)",
           };
         })
       );
@@ -235,37 +253,46 @@ export default function StockChart({
   }, [renderChart]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl p-6 backdrop-blur-sm"
-    >
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-5">
-        <div className="flex flex-wrap gap-1.5">
-          {CHART_TYPES.map((ct) => (
+    <div>
+      {/* Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-5">
+        <div className="flex flex-wrap gap-0 border border-[var(--rule)]">
+          {CHART_TYPES.map((ct, i) => (
             <button
               key={ct.value}
               onClick={() => onChartTypeChange(ct.value)}
-              className={`px-3.5 py-2 text-xs font-medium rounded-lg transition-all ${
-                chartType === ct.value
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
-                  : "bg-zinc-800/60 text-zinc-400 hover:bg-zinc-700/60 hover:text-zinc-200 border border-zinc-700/30"
+              className={`smallcaps-mono px-3 py-2 transition-colors ${
+                i > 0 ? "border-l border-[var(--rule)]" : ""
               }`}
+              style={{
+                background:
+                  chartType === ct.value ? "var(--ink)" : "transparent",
+                color:
+                  chartType === ct.value
+                    ? "var(--paper)"
+                    : "var(--ink-soft)",
+              }}
             >
               {ct.label}
             </button>
           ))}
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          {TIMEFRAMES.map((tf) => (
+        <div className="flex flex-wrap gap-0 border border-[var(--rule)]">
+          {TIMEFRAMES.map((tf, i) => (
             <button
               key={tf.value}
               onClick={() => onTimeframeChange(tf.value)}
-              className={`px-3 py-2 text-xs font-medium rounded-lg transition-all ${
-                timeframe === tf.value
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
-                  : "bg-zinc-800/60 text-zinc-400 hover:bg-zinc-700/60 hover:text-zinc-200 border border-zinc-700/30"
+              className={`smallcaps-mono px-3 py-2 transition-colors ${
+                i > 0 ? "border-l border-[var(--rule)]" : ""
               }`}
+              style={{
+                background:
+                  timeframe === tf.value ? "var(--ink)" : "transparent",
+                color:
+                  timeframe === tf.value
+                    ? "var(--paper)"
+                    : "var(--ink-soft)",
+              }}
             >
               {tf.label}
             </button>
@@ -273,14 +300,18 @@ export default function StockChart({
         </div>
       </div>
 
-      <div className="relative h-[400px] rounded-xl overflow-hidden">
+      <div className="relative h-[420px] border-t border-b border-[var(--rule)]">
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-zinc-900/80 z-10">
-            <div className="h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <div className="absolute inset-0 flex items-center justify-center bg-[var(--paper)]/80 z-10">
+            <p className="smallcaps-mono">Loading…</p>
           </div>
         )}
         <div ref={containerRef} className="w-full h-full" />
       </div>
-    </motion.div>
+
+      <p className="smallcaps mt-3">
+        {timeframeCaption(timeframe)} · source: yfinance
+      </p>
+    </div>
   );
 }
