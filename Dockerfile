@@ -29,10 +29,14 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip \
  && pip install --no-cache-dir -r requirements.txt
 
-# Copy backend code (FastAPI app, data, ml_models)
+# Copy backend code (FastAPI app + data — calibration artifacts live here)
 COPY app/        ./app/
 COPY data/       ./data/
-COPY ml_models/  ./ml_models/
+
+# Empty placeholder so any path checks for ml_models/ resolve.
+# (The directory is empty in the repo; COPY-ing an empty dir trips BuildKit's
+# checksum step. mkdir avoids that and is identical in effect.)
+RUN mkdir -p ml_models
 
 # Copy the built static export from stage 1 into the path FastAPI mounts
 COPY --from=frontend-builder /app/frontend/out  ./frontend/out
