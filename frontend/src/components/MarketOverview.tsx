@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { motion } from "framer-motion";
-import { TrendingUp, TrendingDown, RefreshCw } from "lucide-react";
 import { getMarketOverview, getTopGainers, getTopLosers } from "@/lib/api";
 import type { MarketOverview as MarketOverviewType, MarketMover } from "@/lib/types";
 
@@ -10,35 +8,37 @@ interface Props {
   onStockSelect: (symbol: string) => void;
 }
 
-function useRelativeTime(isoString: string | undefined) {
-  const [now, setNow] = useState(Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 10000);
-    return () => clearInterval(id);
-  }, []);
-  if (!isoString) return null;
-  const diff = Math.max(0, Math.floor((now - new Date(isoString).getTime()) / 1000));
-  if (diff < 60) return "just now";
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  return `${Math.floor(diff / 3600)}h ago`;
-}
-
 export default function MarketOverview({ onStockSelect }: Props) {
   const [overview, setOverview] = useState<MarketOverviewType | null>(null);
   const [gainers, setGainers] = useState<MarketMover[]>([]);
   const [losers, setLosers] = useState<MarketMover[]>([]);
+  const [active, setActive] = useState<MarketMover[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const relativeTime = useRelativeTime(overview?.last_update);
 
   const load = useCallback(async () => {
     try {
       setLoading(true);
       setError(false);
-      const [ov, g, l] = await Promise.all([getMarketOverview(), getTopGainers(), getTopLosers()]);
+      const [ov, g, l] = await Promise.all([
+        getMarketOverview(),
+        getTopGainers(),
+        getTopLosers(),
+      ]);
       setOverview(ov);
-      setGainers(g.gainers?.slice(0, 5) ?? []);
-      setLosers(l.losers?.slice(0, 5) ?? []);
+      const gainerList = g.gainers?.slice(0, 6) ?? [];
+      const loserList = l.losers?.slice(0, 6) ?? [];
+      setGainers(gainerList);
+      setLosers(loserList);
+      // "Most active" is a derived list — sort gainers + losers by absolute change.
+      const combined = [...gainerList, ...loserList]
+        .slice()
+        .sort(
+          (a, b) =>
+            Math.abs(b.change_percent ?? 0) - Math.abs(a.change_percent ?? 0)
+        )
+        .slice(0, 6);
+      setActive(combined);
     } catch {
       setError(true);
     } finally {
@@ -54,171 +54,192 @@ export default function MarketOverview({ onStockSelect }: Props) {
 
   if (error) {
     return (
-      <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl p-8 text-center">
-        <p className="text-zinc-400">Unable to load market data</p>
-        <button
-          onClick={load}
-          className="mt-3 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm text-zinc-300 transition-colors inline-flex items-center gap-2"
-        >
-          <RefreshCw className="h-3.5 w-3.5" />
-          Retry
-        </button>
-      </div>
+      <section className="page-frame section">
+        <p className="font-serif text-[var(--ink-soft)]">
+          Unable to load market data.{" "}
+          <button onClick={load} className="editorial-link">
+            Retry
+          </button>
+          .
+        </p>
+      </section>
     );
   }
 
-  const indices = overview?.market_indices
-    ? [
-        { name: "S&P 500", data: overview.market_indices["S&P 500"] },
-        { name: "Dow Jones", data: overview.market_indices["Dow Jones"] },
-        { name: "NASDAQ", data: overview.market_indices["NASDAQ"] },
-      ]
-    : [];
+  const sp = overview?.market_indices?.["S&P 500"];
+  const dow = overview?.market_indices?.["Dow Jones"];
+  const nasdaq = overview?.market_indices?.["NASDAQ"];
+  const isUp = (sp?.change_percent ?? 0) >= 0;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 }}
-      className="space-y-6"
-    >
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-zinc-100">Market Overview</h2>
-        {relativeTime && (
-          <span className="text-xs text-zinc-500">
-            Updated {relativeTime}
-          </span>
-        )}
-      </div>
+    <section className="page-frame section">
+      <p className="smallcaps mb-6">The market · today</p>
+      <hr className="rule mb-10" />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {loading
-          ? Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl p-5 animate-pulse">
-                <div className="h-4 bg-zinc-800 rounded w-20 mb-3" />
-                <div className="h-8 bg-zinc-800 rounded w-28" />
-              </div>
-            ))
-          : indices.map((idx) => {
-              const isUp = (idx.data?.change_percent ?? 0) >= 0;
-              return (
-                <div
-                  key={idx.name}
-                  className="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl p-5 backdrop-blur-sm"
-                >
-                  <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">{idx.name}</p>
-                  <p className="text-2xl font-bold text-zinc-100 mt-1 tabular-nums">
-                    {idx.data?.value?.toLocaleString(undefined, { maximumFractionDigits: 0 }) ?? "—"}
-                  </p>
-                  {idx.data && (
-                    <div className={`flex items-center gap-1 mt-1 text-sm font-medium ${isUp ? "text-emerald-400" : "text-red-400"}`}>
-                      {isUp ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
-                      <span>{isUp ? "+" : ""}{idx.data.change_percent?.toFixed(2)}%</span>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-      </div>
+      {/* Hero: S&P 500 */}
+      <div className="flex flex-col md:flex-row md:items-end md:gap-16 gap-6 mb-16">
+        <div className="flex-1">
+          <p className="smallcaps mb-3">S&amp;P 500</p>
+          {loading ? (
+            <div className="hero-numeral tabular text-[var(--muted)]">—</div>
+          ) : (
+            <div className="hero-numeral tabular">
+              {sp?.value?.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }) ?? "—"}
+            </div>
+          )}
+          {sp && (
+            <p
+              className="font-mono tabular mt-4 text-[15px]"
+              style={{ color: isUp ? "var(--up)" : "var(--down)" }}
+            >
+              {isUp ? "+" : ""}
+              {sp.change?.toFixed(2)} ({isUp ? "+" : ""}
+              {sp.change_percent?.toFixed(2)}%)
+            </p>
+          )}
+        </div>
 
-      {overview?.market_summary && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatCard label="Advancing" value={overview.market_summary.advancing_stocks} color="text-emerald-400" />
-          <StatCard label="Declining" value={overview.market_summary.declining_stocks} color="text-red-400" />
-          <StatCard
-            label="Market Cap"
-            value={`$${((overview.market_summary as Record<string, number>).total_market_cap / 1e12).toFixed(2)}T`}
-            color="text-blue-400"
+        <div className="flex gap-12">
+          <SecondaryIndex
+            label="Dow Jones"
+            value={dow?.value}
+            changePct={dow?.change_percent}
+            loading={loading}
           />
-          <StatCard
-            label="A/D Ratio"
-            value={(overview.market_summary.advancing_stocks / Math.max(1, overview.market_summary.declining_stocks)).toFixed(2)}
-            color="text-amber-400"
+          <SecondaryIndex
+            label="NASDAQ"
+            value={nasdaq?.value}
+            changePct={nasdaq?.change_percent}
+            loading={loading}
           />
         </div>
-      )}
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <MoverList
-          title="Top Gainers"
-          icon={<TrendingUp className="h-4 w-4 text-emerald-400" />}
+      <hr className="rule mb-10" />
+
+      {/* Movers grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-10">
+        <MoverColumn
+          label="Top gainers"
           movers={gainers}
           type="gain"
           loading={loading}
           onSelect={onStockSelect}
         />
-        <MoverList
-          title="Top Losers"
-          icon={<TrendingDown className="h-4 w-4 text-red-400" />}
+        <MoverColumn
+          label="Top losers"
           movers={losers}
           type="loss"
           loading={loading}
           onSelect={onStockSelect}
         />
+        <MoverColumn
+          label="Most active"
+          movers={active}
+          type="active"
+          loading={loading}
+          onSelect={onStockSelect}
+        />
       </div>
-    </motion.div>
+    </section>
   );
 }
 
-function StatCard({ label, value, color }: { label: string; value: string | number; color: string }) {
+function SecondaryIndex({
+  label,
+  value,
+  changePct,
+  loading,
+}: {
+  label: string;
+  value: number | undefined;
+  changePct: number | undefined;
+  loading: boolean;
+}) {
+  const isUp = (changePct ?? 0) >= 0;
   return (
-    <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-xl p-4 text-center backdrop-blur-sm">
-      <p className={`text-lg font-bold tabular-nums ${color}`}>{value}</p>
-      <p className="text-xs text-zinc-500 mt-0.5">{label}</p>
+    <div>
+      <p className="smallcaps mb-2">{label}</p>
+      <p
+        className="font-serif tabular"
+        style={{ fontSize: "1.75rem", lineHeight: 1.1, fontWeight: 400 }}
+      >
+        {loading || value === undefined
+          ? "—"
+          : value.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+      </p>
+      {changePct !== undefined && !loading && (
+        <p
+          className="font-mono tabular mt-2 text-[13px]"
+          style={{ color: isUp ? "var(--up)" : "var(--down)" }}
+        >
+          {isUp ? "+" : ""}
+          {changePct.toFixed(2)}%
+        </p>
+      )}
     </div>
   );
 }
 
-function MoverList({
-  title,
-  icon,
+function MoverColumn({
+  label,
   movers,
   type,
   loading,
   onSelect,
 }: {
-  title: string;
-  icon: React.ReactNode;
+  label: string;
   movers: MarketMover[];
-  type: "gain" | "loss";
+  type: "gain" | "loss" | "active";
   loading: boolean;
   onSelect: (symbol: string) => void;
 }) {
   return (
-    <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl p-5 backdrop-blur-sm">
-      <div className="flex items-center gap-2 mb-4">
-        {icon}
-        <h3 className="font-semibold text-zinc-200">{title}</h3>
-      </div>
+    <div>
+      <p className="smallcaps mb-4">{label}</p>
+      <hr className="rule mb-4" />
       {loading ? (
-        <div className="space-y-3">
+        <ul className="space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-10 bg-zinc-800 rounded-lg animate-pulse" />
+            <li key={i} className="h-6 bg-[var(--paper-soft)]" />
           ))}
-        </div>
+        </ul>
       ) : (
-        <div className="space-y-1">
-          {movers.map((m) => (
-            <button
-              key={m.symbol}
-              onClick={() => onSelect(m.symbol)}
-              className="w-full flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-zinc-800/60 transition-colors"
-            >
-              <div className="text-left">
-                <span className="font-semibold text-sm text-zinc-200">{m.symbol}</span>
-                <span className="ml-2 text-xs text-zinc-500 hidden sm:inline">{m.name}</span>
-              </div>
-              <span
-                className={`text-sm font-semibold tabular-nums ${
-                  type === "gain" ? "text-emerald-400" : "text-red-400"
-                }`}
-              >
-                {type === "gain" ? "+" : ""}
-                {m.change_percent}%
-              </span>
-            </button>
-          ))}
-        </div>
+        <ul>
+          {movers.map((m, idx) => {
+            const pct = m.change_percent ?? 0;
+            const colorStyle =
+              type === "loss" || (type === "active" && pct < 0)
+                ? { color: "var(--down)" }
+                : { color: "var(--up)" };
+            return (
+              <li key={`${m.symbol}-${idx}`}>
+                <button
+                  onClick={() => onSelect(m.symbol)}
+                  className="w-full flex items-baseline justify-between py-2 text-left hover:bg-[var(--paper-soft)] transition-colors"
+                >
+                  <span className="font-mono tabular text-[14px] text-[var(--ink)] w-20 shrink-0">
+                    {m.symbol}
+                  </span>
+                  <span className="font-mono tabular text-[14px] text-[var(--ink-soft)] flex-1 text-right pr-4">
+                    {typeof m.price === "number" ? m.price.toFixed(2) : "—"}
+                  </span>
+                  <span
+                    className="font-mono tabular text-[14px] w-20 text-right"
+                    style={colorStyle}
+                  >
+                    {pct >= 0 ? "+" : ""}
+                    {pct.toFixed(2)}%
+                  </span>
+                </button>
+                {idx < movers.length - 1 && <hr className="rule" />}
+              </li>
+            );
+          })}
+        </ul>
       )}
     </div>
   );
