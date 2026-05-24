@@ -21,28 +21,50 @@ function formatMarketCap(cap: number): string {
   return `$${cap.toLocaleString()}`;
 }
 
-function rsiInterpretation(rsi: number | null): string {
-  if (rsi === null || rsi === undefined) return "—";
-  if (rsi >= 70) return "Overbought";
-  if (rsi <= 30) return "Oversold";
-  return "Neutral";
+function rsiInterpretation(rsi: number | null): {
+  label: string;
+  color: string;
+} {
+  if (rsi === null || rsi === undefined)
+    return { label: "—", color: "var(--text-muted)" };
+  if (rsi >= 70) return { label: "Overbought", color: "var(--down)" };
+  if (rsi <= 30) return { label: "Oversold", color: "var(--up)" };
+  return { label: "Neutral", color: "var(--text-soft)" };
 }
 
-function macdInterpretation(macd: number | null): string {
-  if (macd === null || macd === undefined) return "—";
-  if (macd > 0) return "Bullish crossover";
-  if (macd < 0) return "Bearish crossover";
-  return "Neutral";
+function macdInterpretation(macd: number | null): {
+  label: string;
+  color: string;
+} {
+  if (macd === null || macd === undefined)
+    return { label: "—", color: "var(--text-muted)" };
+  if (macd > 0) return { label: "Bullish crossover", color: "var(--up)" };
+  if (macd < 0) return { label: "Bearish crossover", color: "var(--down)" };
+  return { label: "Neutral", color: "var(--text-soft)" };
 }
 
 export default function StockDetail({ data, loading }: Props) {
   if (loading) {
     return (
-      <div className="py-8">
-        <div className="space-y-4 animate-pulse">
-          <div className="h-8 bg-[var(--paper-soft)] w-1/3" />
-          <div className="h-14 bg-[var(--paper-soft)] w-1/2" />
-          <div className="h-24 bg-[var(--paper-soft)]" />
+      <div style={{ padding: "32px 0" }}>
+        <div
+          style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+        >
+          <div
+            style={{
+              height: "32px",
+              background: "var(--surface-2)",
+              width: "30%",
+            }}
+          />
+          <div
+            style={{
+              height: "56px",
+              background: "var(--surface-2)",
+              width: "45%",
+            }}
+          />
+          <div style={{ height: "120px", background: "var(--surface-2)" }} />
         </div>
       </div>
     );
@@ -50,8 +72,8 @@ export default function StockDetail({ data, loading }: Props) {
 
   if (!data) {
     return (
-      <div className="py-12">
-        <p className="font-serif text-[18px] text-[var(--ink-soft)] italic">
+      <div style={{ padding: "48px 0" }}>
+        <p style={{ color: "var(--text-soft)", fontSize: "15px" }}>
           Select a ticker to view details, technical indicators, and the
           published prediction.
         </p>
@@ -65,91 +87,166 @@ export default function StockDetail({ data, loading }: Props) {
   const dailyChangePercent = (dailyChange / price.open_price) * 100;
   const isPositive = dailyChange >= 0;
   const deltaColor = isPositive ? "var(--up)" : "var(--down)";
+  const rsi = rsiInterpretation(analysis.rsi);
+  const macd = macdInterpretation(analysis.macd);
 
   return (
     <div>
-      {/* Header: symbol + name + price */}
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
-        <div className="min-w-0">
-          <p className="smallcaps mb-2">Issue</p>
-          <h2
-            className="font-serif text-[var(--ink)]"
-            style={{ fontSize: "2.25rem", lineHeight: 1.05, fontWeight: 500 }}
-          >
-            {data.name}
-          </h2>
-          <p className="font-mono tabular mt-2 text-[15px] text-[var(--ink-soft)]">
-            {data.symbol} · {data.exchange} · {data.sector}
-          </p>
-        </div>
-        <div className="md:text-right">
-          <p className="smallcaps mb-2">Last price</p>
-          <p
-            className="font-mono tabular"
-            style={{
-              fontSize: "3.75rem",
-              lineHeight: 1,
-              fontWeight: 500,
-              color: "var(--ink)",
-            }}
-          >
-            ${price.close_price.toFixed(2)}
-          </p>
-          <p
-            className="font-mono tabular mt-3 text-[15px]"
-            style={{ color: deltaColor }}
-          >
-            {isPositive ? "+" : ""}
-            {dailyChange.toFixed(2)} ({isPositive ? "+" : ""}
-            {dailyChangePercent.toFixed(2)}%) today
-          </p>
+      {/* Header panel */}
+      <div
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: "4px",
+          padding: "28px 32px",
+          marginBottom: "20px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: "32px",
+            flexWrap: "wrap",
+            alignItems: "flex-end",
+          }}
+        >
+          <div style={{ minWidth: 0 }}>
+            <p className="smallcaps-mono" style={{ marginBottom: "6px" }}>
+              // ISSUE
+            </p>
+            <h2
+              style={{
+                fontFamily: "var(--font-sans), sans-serif",
+                fontSize: "28px",
+                fontWeight: 600,
+                lineHeight: 1.1,
+                color: "var(--text)",
+                margin: 0,
+              }}
+            >
+              {data.symbol}
+            </h2>
+            <p
+              style={{
+                marginTop: "6px",
+                color: "var(--text-soft)",
+                fontSize: "14px",
+              }}
+            >
+              {data.name} · {data.exchange} · {data.sector}
+            </p>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <p className="smallcaps-mono" style={{ marginBottom: "6px" }}>
+              // LAST
+            </p>
+            <p
+              className="font-mono tabular"
+              style={{
+                fontSize: "64px",
+                fontWeight: 600,
+                lineHeight: 1,
+                color: "var(--text)",
+                letterSpacing: "-0.02em",
+                margin: 0,
+              }}
+            >
+              ${price.close_price.toFixed(2)}
+            </p>
+            <p
+              className="font-mono tabular"
+              style={{
+                marginTop: "10px",
+                fontSize: "14px",
+                color: deltaColor,
+              }}
+            >
+              {isPositive ? "▲" : "▼"} {isPositive ? "+" : ""}
+              {dailyChange.toFixed(2)} ({isPositive ? "+" : ""}
+              {dailyChangePercent.toFixed(2)}%)
+            </p>
+          </div>
         </div>
       </div>
 
-      <hr className="rule mb-10" />
-
-      {/* Day session row */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-x-8 gap-y-6 mb-10">
-        <SessionStat label="Open" value={`$${price.open_price.toFixed(2)}`} />
-        <SessionStat label="Day high" value={`$${price.high_price.toFixed(2)}`} />
-        <SessionStat label="Day low" value={`$${price.low_price.toFixed(2)}`} />
-        <SessionStat label="Volume" value={formatVolume(price.volume)} />
-        <SessionStat label="Market cap" value={formatMarketCap(data.market_cap)} />
+      {/* Session stats panel */}
+      <div
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: "4px",
+          padding: "20px 24px",
+          marginBottom: "20px",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+          gap: "20px 32px",
+        }}
+      >
+        <SessionStat label="// OPEN" value={`$${price.open_price.toFixed(2)}`} />
+        <SessionStat label="// HIGH" value={`$${price.high_price.toFixed(2)}`} />
+        <SessionStat label="// LOW" value={`$${price.low_price.toFixed(2)}`} />
+        <SessionStat label="// VOLUME" value={formatVolume(price.volume)} />
+        <SessionStat
+          label="// MARKET CAP"
+          value={formatMarketCap(data.market_cap)}
+        />
       </div>
 
-      <hr className="rule mb-10" />
-
-      {/* Technical indicators — small multiples */}
-      <p className="smallcaps mb-4">Technical indicators</p>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border-t border-b border-[var(--rule)]">
+      {/* Technical indicators */}
+      <p className="smallcaps-mono" style={{ marginBottom: "12px" }}>
+        // TECHNICAL INDICATORS
+      </p>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: "16px",
+          marginBottom: "32px",
+        }}
+      >
         <IndicatorPanel
-          label="RSI (14)"
+          label="// RSI (14)"
           value={analysis.rsi !== null ? analysis.rsi.toFixed(1) : "—"}
-          caption={rsiInterpretation(analysis.rsi)}
-          divider
+          valueColor={rsi.color}
+          caption={rsi.label}
         />
         <IndicatorPanel
-          label="MACD"
+          label="// MACD"
           value={analysis.macd !== null ? analysis.macd.toFixed(3) : "—"}
-          caption={macdInterpretation(analysis.macd)}
-          divider
+          valueColor={macd.color}
+          caption={macd.label}
         />
         <IndicatorPanel
-          label="Volatility (σ)"
+          label="// BOLLINGER (σ)"
           value={
             analysis.volatility !== null
               ? `${(analysis.volatility * 100).toFixed(2)}%`
               : "—"
           }
+          valueColor="var(--text)"
           caption="Trailing 30d, annualized"
         />
       </div>
 
       {/* Model output */}
-      <p className="smallcaps mt-12 mb-4">Model output — current</p>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-x-8 gap-y-4">
+      <p className="smallcaps-mono" style={{ marginBottom: "12px" }}>
+        // MODEL OUTPUT · CURRENT
+      </p>
+      <div
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: "4px",
+          padding: "20px 24px",
+          marginBottom: "32px",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+          gap: "20px 32px",
+        }}
+      >
         <SessionStat
-          label="1D forecast"
+          label="// 1D FORECAST"
           value={
             analysis.predicted_price_1d
               ? `$${analysis.predicted_price_1d.toFixed(2)}`
@@ -157,7 +254,7 @@ export default function StockDetail({ data, loading }: Props) {
           }
         />
         <SessionStat
-          label="7D forecast"
+          label="// 7D FORECAST"
           value={
             analysis.predicted_price_7d
               ? `$${analysis.predicted_price_7d.toFixed(2)}`
@@ -165,7 +262,7 @@ export default function StockDetail({ data, loading }: Props) {
           }
         />
         <SessionStat
-          label="30D forecast"
+          label="// 30D FORECAST"
           value={
             analysis.predicted_price_30d
               ? `$${analysis.predicted_price_30d.toFixed(2)}`
@@ -173,7 +270,7 @@ export default function StockDetail({ data, loading }: Props) {
           }
         />
         <SessionStat
-          label="Signal"
+          label="// SIGNAL"
           value={analysis.recommendation ?? "—"}
           accent={
             analysis.recommendation === "BUY"
@@ -187,17 +284,29 @@ export default function StockDetail({ data, loading }: Props) {
 
       {data.industry && (
         <>
-          <hr className="rule mt-12 mb-6" />
-          <p className="smallcaps mb-3">About this company</p>
+          <p className="smallcaps-mono" style={{ marginBottom: "10px" }}>
+            // ABOUT THIS COMPANY
+          </p>
           <p
-            className="font-serif text-[var(--ink)]"
-            style={{ fontSize: "17px", lineHeight: 1.55, maxWidth: "720px" }}
+            style={{
+              fontFamily: "var(--font-sans), sans-serif",
+              fontSize: "14px",
+              lineHeight: 1.6,
+              color: "var(--text-soft)",
+              maxWidth: "720px",
+              margin: 0,
+            }}
           >
-            <strong>{data.name}</strong> trades on {data.exchange} under{" "}
-            <span className="font-mono">{data.symbol}</span>. It operates in the{" "}
-            <em>{data.industry}</em> industry within the{" "}
-            <em>{data.sector}</em> sector, with a market capitalization of{" "}
-            <span className="font-mono">{formatMarketCap(data.market_cap)}</span>
+            <strong style={{ color: "var(--text)" }}>{data.name}</strong>{" "}
+            trades on {data.exchange} under{" "}
+            <span className="font-mono" style={{ color: "var(--text)" }}>
+              {data.symbol}
+            </span>
+            . It operates in the {data.industry} industry within the{" "}
+            {data.sector} sector, with a market capitalization of{" "}
+            <span className="font-mono" style={{ color: "var(--text)" }}>
+              {formatMarketCap(data.market_cap)}
+            </span>
             .
           </p>
         </>
@@ -217,10 +326,16 @@ function SessionStat({
 }) {
   return (
     <div>
-      <p className="smallcaps mb-1">{label}</p>
+      <p className="smallcaps-mono" style={{ marginBottom: "4px" }}>
+        {label}
+      </p>
       <p
-        className="font-mono tabular text-[18px]"
-        style={{ color: accent ?? "var(--ink)" }}
+        className="font-mono tabular"
+        style={{
+          fontSize: "16px",
+          color: accent ?? "var(--text)",
+          fontWeight: 500,
+        }}
       >
         {value}
       </p>
@@ -231,26 +346,45 @@ function SessionStat({
 function IndicatorPanel({
   label,
   value,
+  valueColor,
   caption,
-  divider,
 }: {
   label: string;
   value: string;
+  valueColor: string;
   caption: string;
-  divider?: boolean;
 }) {
   return (
     <div
-      className={`py-6 px-6 ${divider ? "md:border-r md:border-[var(--rule)]" : ""}`}
+      style={{
+        background: "var(--surface)",
+        border: "1px solid var(--border)",
+        borderRadius: "4px",
+        padding: "16px",
+      }}
     >
-      <p className="smallcaps mb-3">{label}</p>
+      <p className="smallcaps-mono" style={{ marginBottom: "10px" }}>
+        {label}
+      </p>
       <p
         className="font-mono tabular"
-        style={{ fontSize: "2rem", lineHeight: 1.05, fontWeight: 500 }}
+        style={{
+          fontSize: "28px",
+          lineHeight: 1.05,
+          fontWeight: 600,
+          color: valueColor,
+          margin: 0,
+        }}
       >
         {value}
       </p>
-      <p className="font-serif italic text-[14px] text-[var(--ink-soft)] mt-2">
+      <p
+        style={{
+          marginTop: "6px",
+          fontSize: "12px",
+          color: "var(--text-muted)",
+        }}
+      >
         {caption}
       </p>
     </div>
