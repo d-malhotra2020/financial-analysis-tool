@@ -1,0 +1,1218 @@
+{
+  "predictions_total": 1990,
+  "predictions_correct": 985,
+  "accuracy": 0.495,
+  "by_symbol": {
+    "SPY": {
+      "total": 199,
+      "correct": 95,
+      "accuracy": 0.4774
+    },
+    "AAPL": {
+      "total": 199,
+      "correct": 83,
+      "accuracy": 0.4171
+    },
+    "NVDA": {
+      "total": 199,
+      "correct": 87,
+      "accuracy": 0.4372
+    },
+    "MSFT": {
+      "total": 199,
+      "correct": 99,
+      "accuracy": 0.4975
+    },
+    "GOOGL": {
+      "total": 199,
+      "correct": 107,
+      "accuracy": 0.5377
+    },
+    "AMZN": {
+      "total": 199,
+      "correct": 110,
+      "accuracy": 0.5528
+    },
+    "TSLA": {
+      "total": 199,
+      "correct": 98,
+      "accuracy": 0.4925
+    },
+    "META": {
+      "total": 199,
+      "correct": 109,
+      "accuracy": 0.5477
+    },
+    "JPM": {
+      "total": 199,
+      "correct": 99,
+      "accuracy": 0.4975
+    },
+    "BRK-B": {
+      "total": 199,
+      "correct": 98,
+      "accuracy": 0.4925
+    }
+  },
+  "by_window": {
+    "2025-Q3": {
+      "total": 380,
+      "correct": 179,
+      "accuracy": 0.4711
+    },
+    "2025-Q4": {
+      "total": 640,
+      "correct": 298,
+      "accuracy": 0.4656
+    },
+    "2026-Q1": {
+      "total": 610,
+      "correct": 303,
+      "accuracy": 0.4967
+    },
+    "2026-Q2": {
+      "total": 360,
+      "correct": 205,
+      "accuracy": 0.5694
+    }
+  },
+  "by_outcome": {
+    "up": {
+      "predicted": 1063,
+      "actual": 1046,
+      "true_positive": 552,
+      "precision": 0.5193,
+      "recall": 0.5277
+    },
+    "down": {
+      "predicted": 927,
+      "actual": 944,
+      "true_positive": 433,
+      "precision": 0.4671,
+      "recall": 0.4587
+    }
+  },
+  "samples": [
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2025-12-29",
+      "target_date": "2025-12-30",
+      "current_price": 501.05,
+      "predicted_price": 500.76,
+      "predicted_direction": "down",
+      "actual_price": 503.71,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2025-12-30",
+      "target_date": "2025-12-31",
+      "current_price": 503.71,
+      "predicted_price": 503.83,
+      "predicted_direction": "up",
+      "actual_price": 502.65,
+      "actual_direction": "down",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2025-12-31",
+      "target_date": "2026-01-02",
+      "current_price": 502.65,
+      "predicted_price": 502.83,
+      "predicted_direction": "up",
+      "actual_price": 496.85,
+      "actual_direction": "down",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-01-02",
+      "target_date": "2026-01-05",
+      "current_price": 496.85,
+      "predicted_price": 496.96,
+      "predicted_direction": "up",
+      "actual_price": 498.52,
+      "actual_direction": "up",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-01-05",
+      "target_date": "2026-01-06",
+      "current_price": 498.52,
+      "predicted_price": 498.85,
+      "predicted_direction": "up",
+      "actual_price": 499.05,
+      "actual_direction": "up",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-01-06",
+      "target_date": "2026-01-07",
+      "current_price": 499.05,
+      "predicted_price": 499.04,
+      "predicted_direction": "down",
+      "actual_price": 496.12,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-01-07",
+      "target_date": "2026-01-08",
+      "current_price": 496.12,
+      "predicted_price": 495.65,
+      "predicted_direction": "down",
+      "actual_price": 499.77,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-01-08",
+      "target_date": "2026-01-09",
+      "current_price": 499.77,
+      "predicted_price": 499.1,
+      "predicted_direction": "down",
+      "actual_price": 499.1,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-01-09",
+      "target_date": "2026-01-12",
+      "current_price": 499.1,
+      "predicted_price": 498.7,
+      "predicted_direction": "down",
+      "actual_price": 498.67,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-01-12",
+      "target_date": "2026-01-13",
+      "current_price": 498.67,
+      "predicted_price": 498.27,
+      "predicted_direction": "down",
+      "actual_price": 495.24,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-01-13",
+      "target_date": "2026-01-14",
+      "current_price": 495.24,
+      "predicted_price": 494.76,
+      "predicted_direction": "down",
+      "actual_price": 493.15,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-01-14",
+      "target_date": "2026-01-15",
+      "current_price": 493.15,
+      "predicted_price": 492.86,
+      "predicted_direction": "down",
+      "actual_price": 492.62,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-01-15",
+      "target_date": "2026-01-16",
+      "current_price": 492.62,
+      "predicted_price": 492.16,
+      "predicted_direction": "down",
+      "actual_price": 493.29,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-01-16",
+      "target_date": "2026-01-20",
+      "current_price": 493.29,
+      "predicted_price": 492.51,
+      "predicted_direction": "down",
+      "actual_price": 485.39,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-01-20",
+      "target_date": "2026-01-21",
+      "current_price": 485.39,
+      "predicted_price": 484.07,
+      "predicted_direction": "down",
+      "actual_price": 483.83,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-01-21",
+      "target_date": "2026-01-22",
+      "current_price": 483.83,
+      "predicted_price": 482.21,
+      "predicted_direction": "down",
+      "actual_price": 484.49,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-01-22",
+      "target_date": "2026-01-23",
+      "current_price": 484.49,
+      "predicted_price": 482.64,
+      "predicted_direction": "down",
+      "actual_price": 478.97,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-01-23",
+      "target_date": "2026-01-26",
+      "current_price": 478.97,
+      "predicted_price": 476.86,
+      "predicted_direction": "down",
+      "actual_price": 483.47,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-01-26",
+      "target_date": "2026-01-27",
+      "current_price": 483.47,
+      "predicted_price": 481.2,
+      "predicted_direction": "down",
+      "actual_price": 474.67,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-01-27",
+      "target_date": "2026-01-28",
+      "current_price": 474.67,
+      "predicted_price": 472.5,
+      "predicted_direction": "down",
+      "actual_price": 473.49,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-01-28",
+      "target_date": "2026-01-29",
+      "current_price": 473.49,
+      "predicted_price": 471.36,
+      "predicted_direction": "down",
+      "actual_price": 476.79,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-01-29",
+      "target_date": "2026-01-30",
+      "current_price": 476.79,
+      "predicted_price": 474.7,
+      "predicted_direction": "down",
+      "actual_price": 480.53,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-01-30",
+      "target_date": "2026-02-02",
+      "current_price": 480.53,
+      "predicted_price": 479.05,
+      "predicted_direction": "down",
+      "actual_price": 487.29,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-02-02",
+      "target_date": "2026-02-03",
+      "current_price": 487.29,
+      "predicted_price": 486.35,
+      "predicted_direction": "down",
+      "actual_price": 493.74,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-02-03",
+      "target_date": "2026-02-04",
+      "current_price": 493.74,
+      "predicted_price": 494.0,
+      "predicted_direction": "up",
+      "actual_price": 503.83,
+      "actual_direction": "up",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-02-04",
+      "target_date": "2026-02-05",
+      "current_price": 503.83,
+      "predicted_price": 505.71,
+      "predicted_direction": "up",
+      "actual_price": 503.89,
+      "actual_direction": "up",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-02-05",
+      "target_date": "2026-02-06",
+      "current_price": 503.89,
+      "predicted_price": 507.17,
+      "predicted_direction": "up",
+      "actual_price": 508.09,
+      "actual_direction": "up",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-02-06",
+      "target_date": "2026-02-09",
+      "current_price": 508.09,
+      "predicted_price": 512.41,
+      "predicted_direction": "up",
+      "actual_price": 498.08,
+      "actual_direction": "down",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-02-09",
+      "target_date": "2026-02-10",
+      "current_price": 498.08,
+      "predicted_price": 502.67,
+      "predicted_direction": "up",
+      "actual_price": 500.3,
+      "actual_direction": "up",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-02-10",
+      "target_date": "2026-02-11",
+      "current_price": 500.3,
+      "predicted_price": 504.39,
+      "predicted_direction": "up",
+      "actual_price": 500.02,
+      "actual_direction": "down",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-02-11",
+      "target_date": "2026-02-12",
+      "current_price": 500.02,
+      "predicted_price": 502.75,
+      "predicted_direction": "up",
+      "actual_price": 500.01,
+      "actual_direction": "down",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-02-12",
+      "target_date": "2026-02-13",
+      "current_price": 500.01,
+      "predicted_price": 501.5,
+      "predicted_direction": "up",
+      "actual_price": 497.55,
+      "actual_direction": "down",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-02-13",
+      "target_date": "2026-02-17",
+      "current_price": 497.55,
+      "predicted_price": 497.51,
+      "predicted_direction": "down",
+      "actual_price": 503.41,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-02-17",
+      "target_date": "2026-02-18",
+      "current_price": 503.41,
+      "predicted_price": 503.16,
+      "predicted_direction": "down",
+      "actual_price": 499.07,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-02-18",
+      "target_date": "2026-02-19",
+      "current_price": 499.07,
+      "predicted_price": 498.5,
+      "predicted_direction": "down",
+      "actual_price": 496.94,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-02-19",
+      "target_date": "2026-02-20",
+      "current_price": 496.94,
+      "predicted_price": 496.4,
+      "predicted_direction": "down",
+      "actual_price": 498.2,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-02-20",
+      "target_date": "2026-02-23",
+      "current_price": 498.2,
+      "predicted_price": 497.75,
+      "predicted_direction": "down",
+      "actual_price": 494.09,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-02-23",
+      "target_date": "2026-02-24",
+      "current_price": 494.09,
+      "predicted_price": 493.92,
+      "predicted_direction": "down",
+      "actual_price": 494.51,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-02-24",
+      "target_date": "2026-02-25",
+      "current_price": 494.51,
+      "predicted_price": 493.77,
+      "predicted_direction": "down",
+      "actual_price": 493.99,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-02-25",
+      "target_date": "2026-02-26",
+      "current_price": 493.99,
+      "predicted_price": 493.1,
+      "predicted_direction": "down",
+      "actual_price": 502.67,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-02-26",
+      "target_date": "2026-02-27",
+      "current_price": 502.67,
+      "predicted_price": 502.13,
+      "predicted_direction": "down",
+      "actual_price": 504.95,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-02-27",
+      "target_date": "2026-03-02",
+      "current_price": 504.95,
+      "predicted_price": 504.75,
+      "predicted_direction": "down",
+      "actual_price": 480.17,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-03-02",
+      "target_date": "2026-03-03",
+      "current_price": 480.17,
+      "predicted_price": 479.55,
+      "predicted_direction": "down",
+      "actual_price": 481.36,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-03-03",
+      "target_date": "2026-03-04",
+      "current_price": 481.36,
+      "predicted_price": 480.57,
+      "predicted_direction": "down",
+      "actual_price": 487.48,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-03-04",
+      "target_date": "2026-03-05",
+      "current_price": 487.48,
+      "predicted_price": 486.64,
+      "predicted_direction": "down",
+      "actual_price": 500.4,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-03-05",
+      "target_date": "2026-03-06",
+      "current_price": 500.4,
+      "predicted_price": 499.24,
+      "predicted_direction": "down",
+      "actual_price": 498.98,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-03-06",
+      "target_date": "2026-03-09",
+      "current_price": 498.98,
+      "predicted_price": 497.31,
+      "predicted_direction": "down",
+      "actual_price": 497.2,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-03-09",
+      "target_date": "2026-03-10",
+      "current_price": 497.2,
+      "predicted_price": 496.77,
+      "predicted_direction": "down",
+      "actual_price": 494.14,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-03-10",
+      "target_date": "2026-03-11",
+      "current_price": 494.14,
+      "predicted_price": 494.74,
+      "predicted_direction": "up",
+      "actual_price": 493.57,
+      "actual_direction": "down",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-03-11",
+      "target_date": "2026-03-12",
+      "current_price": 493.57,
+      "predicted_price": 494.68,
+      "predicted_direction": "up",
+      "actual_price": 491.89,
+      "actual_direction": "down",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-03-12",
+      "target_date": "2026-03-13",
+      "current_price": 491.89,
+      "predicted_price": 492.75,
+      "predicted_direction": "up",
+      "actual_price": 490.03,
+      "actual_direction": "down",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-03-13",
+      "target_date": "2026-03-16",
+      "current_price": 490.03,
+      "predicted_price": 490.77,
+      "predicted_direction": "up",
+      "actual_price": 492.21,
+      "actual_direction": "up",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-03-16",
+      "target_date": "2026-03-17",
+      "current_price": 492.21,
+      "predicted_price": 492.07,
+      "predicted_direction": "down",
+      "actual_price": 492.58,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-03-17",
+      "target_date": "2026-03-18",
+      "current_price": 492.58,
+      "predicted_price": 491.86,
+      "predicted_direction": "down",
+      "actual_price": 484.47,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-03-18",
+      "target_date": "2026-03-19",
+      "current_price": 484.47,
+      "predicted_price": 483.15,
+      "predicted_direction": "down",
+      "actual_price": 481.48,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-03-19",
+      "target_date": "2026-03-20",
+      "current_price": 481.48,
+      "predicted_price": 480.08,
+      "predicted_direction": "down",
+      "actual_price": 480.94,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-03-20",
+      "target_date": "2026-03-23",
+      "current_price": 480.94,
+      "predicted_price": 479.53,
+      "predicted_direction": "down",
+      "actual_price": 479.98,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-03-23",
+      "target_date": "2026-03-24",
+      "current_price": 479.98,
+      "predicted_price": 478.28,
+      "predicted_direction": "down",
+      "actual_price": 479.33,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-03-24",
+      "target_date": "2026-03-25",
+      "current_price": 479.33,
+      "predicted_price": 477.17,
+      "predicted_direction": "down",
+      "actual_price": 476.19,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-03-25",
+      "target_date": "2026-03-26",
+      "current_price": 476.19,
+      "predicted_price": 474.06,
+      "predicted_direction": "down",
+      "actual_price": 475.27,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-03-26",
+      "target_date": "2026-03-27",
+      "current_price": 475.27,
+      "predicted_price": 473.31,
+      "predicted_direction": "down",
+      "actual_price": 468.49,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-03-27",
+      "target_date": "2026-03-30",
+      "current_price": 468.49,
+      "predicted_price": 466.39,
+      "predicted_direction": "down",
+      "actual_price": 474.66,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-03-30",
+      "target_date": "2026-03-31",
+      "current_price": 474.66,
+      "predicted_price": 472.84,
+      "predicted_direction": "down",
+      "actual_price": 479.2,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-03-31",
+      "target_date": "2026-04-01",
+      "current_price": 479.2,
+      "predicted_price": 477.9,
+      "predicted_direction": "down",
+      "actual_price": 478.5,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-04-01",
+      "target_date": "2026-04-02",
+      "current_price": 478.5,
+      "predicted_price": 477.63,
+      "predicted_direction": "down",
+      "actual_price": 477.35,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-04-02",
+      "target_date": "2026-04-06",
+      "current_price": 477.35,
+      "predicted_price": 476.81,
+      "predicted_direction": "down",
+      "actual_price": 476.38,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-04-06",
+      "target_date": "2026-04-07",
+      "current_price": 476.38,
+      "predicted_price": 476.65,
+      "predicted_direction": "up",
+      "actual_price": 478.08,
+      "actual_direction": "up",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-04-07",
+      "target_date": "2026-04-08",
+      "current_price": 478.08,
+      "predicted_price": 478.7,
+      "predicted_direction": "up",
+      "actual_price": 479.75,
+      "actual_direction": "up",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-04-08",
+      "target_date": "2026-04-09",
+      "current_price": 479.75,
+      "predicted_price": 480.4,
+      "predicted_direction": "up",
+      "actual_price": 485.2,
+      "actual_direction": "up",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-04-09",
+      "target_date": "2026-04-10",
+      "current_price": 485.2,
+      "predicted_price": 486.03,
+      "predicted_direction": "up",
+      "actual_price": 479.9,
+      "actual_direction": "down",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-04-10",
+      "target_date": "2026-04-13",
+      "current_price": 479.9,
+      "predicted_price": 480.74,
+      "predicted_direction": "up",
+      "actual_price": 480.19,
+      "actual_direction": "up",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-04-13",
+      "target_date": "2026-04-14",
+      "current_price": 480.19,
+      "predicted_price": 480.87,
+      "predicted_direction": "up",
+      "actual_price": 477.54,
+      "actual_direction": "down",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-04-14",
+      "target_date": "2026-04-15",
+      "current_price": 477.54,
+      "predicted_price": 478.06,
+      "predicted_direction": "up",
+      "actual_price": 474.09,
+      "actual_direction": "down",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-04-15",
+      "target_date": "2026-04-16",
+      "current_price": 474.09,
+      "predicted_price": 474.36,
+      "predicted_direction": "up",
+      "actual_price": 475.12,
+      "actual_direction": "up",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-04-16",
+      "target_date": "2026-04-17",
+      "current_price": 475.12,
+      "predicted_price": 474.72,
+      "predicted_direction": "down",
+      "actual_price": 474.58,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-04-17",
+      "target_date": "2026-04-20",
+      "current_price": 474.58,
+      "predicted_price": 473.87,
+      "predicted_direction": "down",
+      "actual_price": 472.08,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-04-20",
+      "target_date": "2026-04-21",
+      "current_price": 472.08,
+      "predicted_price": 470.89,
+      "predicted_direction": "down",
+      "actual_price": 468.5,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-04-21",
+      "target_date": "2026-04-22",
+      "current_price": 468.5,
+      "predicted_price": 466.97,
+      "predicted_direction": "down",
+      "actual_price": 465.4,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-04-22",
+      "target_date": "2026-04-23",
+      "current_price": 465.4,
+      "predicted_price": 463.75,
+      "predicted_direction": "down",
+      "actual_price": 470.55,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-04-23",
+      "target_date": "2026-04-24",
+      "current_price": 470.55,
+      "predicted_price": 469.12,
+      "predicted_direction": "down",
+      "actual_price": 469.32,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-04-24",
+      "target_date": "2026-04-27",
+      "current_price": 469.32,
+      "predicted_price": 467.89,
+      "predicted_direction": "down",
+      "actual_price": 472.81,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-04-27",
+      "target_date": "2026-04-28",
+      "current_price": 472.81,
+      "predicted_price": 471.74,
+      "predicted_direction": "down",
+      "actual_price": 478.16,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-04-28",
+      "target_date": "2026-04-29",
+      "current_price": 478.16,
+      "predicted_price": 477.83,
+      "predicted_direction": "down",
+      "actual_price": 475.38,
+      "actual_direction": "down",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-04-29",
+      "target_date": "2026-04-30",
+      "current_price": 475.38,
+      "predicted_price": 475.8,
+      "predicted_direction": "up",
+      "actual_price": 473.6,
+      "actual_direction": "down",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-04-30",
+      "target_date": "2026-05-01",
+      "current_price": 473.6,
+      "predicted_price": 474.33,
+      "predicted_direction": "up",
+      "actual_price": 473.01,
+      "actual_direction": "down",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-05-01",
+      "target_date": "2026-05-04",
+      "current_price": 473.01,
+      "predicted_price": 474.09,
+      "predicted_direction": "up",
+      "actual_price": 468.52,
+      "actual_direction": "down",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-05-04",
+      "target_date": "2026-05-05",
+      "current_price": 468.52,
+      "predicted_price": 469.4,
+      "predicted_direction": "up",
+      "actual_price": 465.52,
+      "actual_direction": "down",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-05-05",
+      "target_date": "2026-05-06",
+      "current_price": 465.52,
+      "predicted_price": 465.51,
+      "predicted_direction": "down",
+      "actual_price": 469.83,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-05-06",
+      "target_date": "2026-05-07",
+      "current_price": 469.83,
+      "predicted_price": 469.2,
+      "predicted_direction": "down",
+      "actual_price": 475.08,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-05-07",
+      "target_date": "2026-05-08",
+      "current_price": 475.08,
+      "predicted_price": 474.39,
+      "predicted_direction": "down",
+      "actual_price": 475.94,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-05-08",
+      "target_date": "2026-05-11",
+      "current_price": 475.94,
+      "predicted_price": 475.22,
+      "predicted_direction": "down",
+      "actual_price": 479.55,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-05-11",
+      "target_date": "2026-05-12",
+      "current_price": 479.55,
+      "predicted_price": 479.44,
+      "predicted_direction": "down",
+      "actual_price": 484.96,
+      "actual_direction": "up",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-05-12",
+      "target_date": "2026-05-13",
+      "current_price": 484.96,
+      "predicted_price": 486.13,
+      "predicted_direction": "up",
+      "actual_price": 485.52,
+      "actual_direction": "up",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-05-13",
+      "target_date": "2026-05-14",
+      "current_price": 485.52,
+      "predicted_price": 487.54,
+      "predicted_direction": "up",
+      "actual_price": 484.06,
+      "actual_direction": "down",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-05-14",
+      "target_date": "2026-05-15",
+      "current_price": 484.06,
+      "predicted_price": 486.38,
+      "predicted_direction": "up",
+      "actual_price": 482.7,
+      "actual_direction": "down",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-05-15",
+      "target_date": "2026-05-18",
+      "current_price": 482.7,
+      "predicted_price": 485.18,
+      "predicted_direction": "up",
+      "actual_price": 488.38,
+      "actual_direction": "up",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-05-18",
+      "target_date": "2026-05-19",
+      "current_price": 488.38,
+      "predicted_price": 490.77,
+      "predicted_direction": "up",
+      "actual_price": 480.46,
+      "actual_direction": "down",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-05-19",
+      "target_date": "2026-05-20",
+      "current_price": 480.46,
+      "predicted_price": 481.89,
+      "predicted_direction": "up",
+      "actual_price": 480.9,
+      "actual_direction": "up",
+      "correct": true
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-05-20",
+      "target_date": "2026-05-21",
+      "current_price": 480.9,
+      "predicted_price": 481.52,
+      "predicted_direction": "up",
+      "actual_price": 479.98,
+      "actual_direction": "down",
+      "correct": false
+    },
+    {
+      "symbol": "BRK-B",
+      "as_of_date": "2026-05-21",
+      "target_date": "2026-05-22",
+      "current_price": 479.98,
+      "predicted_price": 480.08,
+      "predicted_direction": "up",
+      "actual_price": 486.38,
+      "actual_direction": "up",
+      "correct": true
+    }
+  ],
+  "run_metadata": {
+    "harness_version": "1.0.0",
+    "model_version": "simple_technical_analysis@trend-extrapolation-v1",
+    "data_source": "yfinance",
+    "run_at": "2026-05-24T03:26:16+00:00",
+    "symbols": [
+      "SPY",
+      "AAPL",
+      "NVDA",
+      "MSFT",
+      "GOOGL",
+      "AMZN",
+      "TSLA",
+      "META",
+      "JPM",
+      "BRK-B"
+    ],
+    "start_date": "2025-05-24",
+    "end_date": "2026-05-24",
+    "horizon_days": 1
+  }
+}
