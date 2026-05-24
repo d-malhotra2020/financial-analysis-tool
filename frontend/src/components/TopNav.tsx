@@ -1,29 +1,67 @@
 export default function TopNav() {
   return (
-    <header className="w-full">
-      <div className="page-frame flex items-end justify-between pt-8 pb-4">
-        <div className="flex items-baseline gap-3">
+    <header
+      className="w-full"
+      style={{
+        borderBottom: "1px solid var(--border)",
+        background: "var(--bg)",
+      }}
+    >
+      <div
+        className="page-frame"
+        style={{
+          padding: "14px 24px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <span
-            className="font-serif text-[18px] text-[var(--ink)]"
-            style={{ fontWeight: 500 }}
+            aria-hidden
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "24px",
+              height: "24px",
+              borderRadius: "4px",
+              background: "var(--accent)",
+              color: "var(--text)",
+              fontWeight: 700,
+              fontSize: "13px",
+              lineHeight: 1,
+              fontFamily: "var(--font-sans), sans-serif",
+            }}
+          >
+            D
+          </span>
+          <span
+            style={{
+              fontFamily: "var(--font-sans), sans-serif",
+              fontSize: "15px",
+              color: "var(--text)",
+              fontWeight: 500,
+            }}
           >
             Financial Analysis
           </span>
-          <span className="text-[var(--muted)] font-serif text-[18px]">·</span>
-          <span
-            className="font-serif italic text-[18px] text-[var(--muted)]"
-            style={{ fontWeight: 400 }}
-          >
-            Drew Malhotra
-          </span>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="smallcaps-mono px-2 py-1 border border-[var(--rule)] tabular">
+
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <span
+            className="smallcaps-mono tabular"
+            style={{
+              border: "1px solid var(--border)",
+              padding: "3px 8px",
+              borderRadius: "4px",
+              color: "var(--text-soft)",
+            }}
+          >
             v0.2
           </span>
         </div>
       </div>
-      <hr className="rule" />
     </header>
   );
 }
