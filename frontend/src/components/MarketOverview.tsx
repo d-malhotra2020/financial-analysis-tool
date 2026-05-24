@@ -30,7 +30,6 @@ export default function MarketOverview({ onStockSelect }: Props) {
       const loserList = l.losers?.slice(0, 6) ?? [];
       setGainers(gainerList);
       setLosers(loserList);
-      // "Most active" is a derived list — sort gainers + losers by absolute change.
       const combined = [...gainerList, ...loserList]
         .slice()
         .sort(
@@ -54,10 +53,19 @@ export default function MarketOverview({ onStockSelect }: Props) {
 
   if (error) {
     return (
-      <section className="page-frame section">
-        <p className="font-serif text-[var(--ink-soft)]">
+      <section className="page-frame" style={{ padding: "48px 24px" }}>
+        <p style={{ color: "var(--text-soft)" }}>
           Unable to load market data.{" "}
-          <button onClick={load} className="editorial-link">
+          <button
+            onClick={load}
+            style={{
+              color: "var(--accent)",
+              background: "transparent",
+              border: 0,
+              cursor: "pointer",
+              textDecoration: "underline",
+            }}
+          >
             Retry
           </button>
           .
@@ -72,72 +80,126 @@ export default function MarketOverview({ onStockSelect }: Props) {
   const isUp = (sp?.change_percent ?? 0) >= 0;
 
   return (
-    <section className="page-frame section">
-      <p className="smallcaps mb-6">The market · today</p>
-      <hr className="rule mb-10" />
+    <section
+      className="page-frame"
+      style={{ paddingTop: "16px", paddingBottom: "48px" }}
+    >
+      {/* Hero panel */}
+      <div
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: "4px",
+          padding: "32px",
+          marginBottom: "24px",
+        }}
+      >
+        <p className="smallcaps-mono" style={{ marginBottom: "12px" }}>
+          // S&P 500 · LIVE
+        </p>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-end",
+            gap: "48px",
+            flexWrap: "wrap",
+          }}
+        >
+          <div>
+            {loading ? (
+              <div
+                className="font-mono tabular"
+                style={{
+                  fontSize: "56px",
+                  fontWeight: 600,
+                  lineHeight: 1,
+                  color: "var(--text-muted)",
+                }}
+              >
+                ——
+              </div>
+            ) : (
+              <div
+                className="font-mono tabular"
+                style={{
+                  fontSize: "56px",
+                  fontWeight: 600,
+                  lineHeight: 1,
+                  color: "var(--text)",
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                {sp?.value?.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }) ?? "—"}
+              </div>
+            )}
+            {sp && (
+              <p
+                className="font-mono tabular"
+                style={{
+                  marginTop: "12px",
+                  fontSize: "14px",
+                  color: isUp ? "var(--up)" : "var(--down)",
+                }}
+              >
+                {isUp ? "▲" : "▼"} {isUp ? "+" : ""}
+                {sp.change?.toFixed(2)} ({isUp ? "+" : ""}
+                {sp.change_percent?.toFixed(2)}%)
+              </p>
+            )}
+          </div>
 
-      {/* Hero: S&P 500 */}
-      <div className="flex flex-col md:flex-row md:items-end md:gap-16 gap-6 mb-16">
-        <div className="flex-1">
-          <p className="smallcaps mb-3">S&amp;P 500</p>
-          {loading ? (
-            <div className="hero-numeral tabular text-[var(--muted)]">—</div>
-          ) : (
-            <div className="hero-numeral tabular">
-              {sp?.value?.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              }) ?? "—"}
-            </div>
-          )}
-          {sp && (
-            <p
-              className="font-mono tabular mt-4 text-[15px]"
-              style={{ color: isUp ? "var(--up)" : "var(--down)" }}
-            >
-              {isUp ? "+" : ""}
-              {sp.change?.toFixed(2)} ({isUp ? "+" : ""}
-              {sp.change_percent?.toFixed(2)}%)
-            </p>
-          )}
-        </div>
-
-        <div className="flex gap-12">
-          <SecondaryIndex
-            label="Dow Jones"
-            value={dow?.value}
-            changePct={dow?.change_percent}
-            loading={loading}
-          />
-          <SecondaryIndex
-            label="NASDAQ"
-            value={nasdaq?.value}
-            changePct={nasdaq?.change_percent}
-            loading={loading}
-          />
+          <div
+            style={{
+              display: "flex",
+              gap: "32px",
+              borderLeft: "1px solid var(--border)",
+              paddingLeft: "32px",
+              flex: "0 0 auto",
+            }}
+          >
+            <SecondaryIndex
+              label="// DOW"
+              value={dow?.value}
+              changePct={dow?.change_percent}
+              loading={loading}
+            />
+            <SecondaryIndex
+              label="// NASDAQ"
+              value={nasdaq?.value}
+              changePct={nasdaq?.change_percent}
+              loading={loading}
+            />
+          </div>
         </div>
       </div>
 
-      <hr className="rule mb-10" />
-
       {/* Movers grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-10">
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gap: "16px",
+        }}
+      >
         <MoverColumn
-          label="Top gainers"
+          label="// TOP GAINERS"
           movers={gainers}
           type="gain"
           loading={loading}
           onSelect={onStockSelect}
         />
         <MoverColumn
-          label="Top losers"
+          label="// TOP LOSERS"
           movers={losers}
           type="loss"
           loading={loading}
           onSelect={onStockSelect}
         />
         <MoverColumn
-          label="Most active"
+          label="// MOST ACTIVE"
           movers={active}
           type="active"
           loading={loading}
@@ -162,10 +224,17 @@ function SecondaryIndex({
   const isUp = (changePct ?? 0) >= 0;
   return (
     <div>
-      <p className="smallcaps mb-2">{label}</p>
+      <p className="smallcaps-mono" style={{ marginBottom: "6px" }}>
+        {label}
+      </p>
       <p
-        className="font-serif tabular"
-        style={{ fontSize: "1.75rem", lineHeight: 1.1, fontWeight: 400 }}
+        className="font-mono tabular"
+        style={{
+          fontSize: "22px",
+          fontWeight: 500,
+          lineHeight: 1.1,
+          color: "var(--text)",
+        }}
       >
         {loading || value === undefined
           ? "—"
@@ -173,10 +242,14 @@ function SecondaryIndex({
       </p>
       {changePct !== undefined && !loading && (
         <p
-          className="font-mono tabular mt-2 text-[13px]"
-          style={{ color: isUp ? "var(--up)" : "var(--down)" }}
+          className="font-mono tabular"
+          style={{
+            marginTop: "4px",
+            fontSize: "12px",
+            color: isUp ? "var(--up)" : "var(--down)",
+          }}
         >
-          {isUp ? "+" : ""}
+          {isUp ? "▲" : "▼"} {isUp ? "+" : ""}
           {changePct.toFixed(2)}%
         </p>
       )}
@@ -198,44 +271,100 @@ function MoverColumn({
   onSelect: (symbol: string) => void;
 }) {
   return (
-    <div>
-      <p className="smallcaps mb-4">{label}</p>
-      <hr className="rule mb-4" />
+    <div
+      style={{
+        background: "var(--surface)",
+        border: "1px solid var(--border)",
+        borderRadius: "4px",
+        padding: "20px",
+      }}
+    >
+      <p className="smallcaps-mono" style={{ marginBottom: "12px" }}>
+        {label}
+      </p>
       {loading ? (
-        <ul className="space-y-3">
+        <ul style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           {Array.from({ length: 5 }).map((_, i) => (
-            <li key={i} className="h-6 bg-[var(--paper-soft)]" />
+            <li
+              key={i}
+              style={{ height: "22px", background: "var(--surface-2)" }}
+            />
           ))}
         </ul>
       ) : (
-        <ul>
+        <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
           {movers.map((m, idx) => {
             const pct = m.change_percent ?? 0;
-            const colorStyle =
+            const color =
               type === "loss" || (type === "active" && pct < 0)
-                ? { color: "var(--down)" }
-                : { color: "var(--up)" };
+                ? "var(--down)"
+                : "var(--up)";
+            const arrow = pct >= 0 ? "▲" : "▼";
             return (
               <li key={`${m.symbol}-${idx}`}>
                 <button
                   onClick={() => onSelect(m.symbol)}
-                  className="w-full flex items-baseline justify-between py-2 text-left hover:bg-[var(--paper-soft)] transition-colors"
+                  className="font-mono tabular"
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "baseline",
+                    justifyContent: "space-between",
+                    padding: "10px 8px",
+                    background: "transparent",
+                    border: 0,
+                    cursor: "pointer",
+                    textAlign: "left",
+                    fontSize: "13px",
+                    color: "var(--text)",
+                    transition: "background 0.12s ease",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.background = "var(--surface-2)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = "transparent")
+                  }
                 >
-                  <span className="font-mono tabular text-[14px] text-[var(--ink)] w-20 shrink-0">
+                  <span
+                    style={{
+                      fontWeight: 500,
+                      width: "76px",
+                      flexShrink: 0,
+                    }}
+                  >
                     {m.symbol}
                   </span>
-                  <span className="font-mono tabular text-[14px] text-[var(--ink-soft)] flex-1 text-right pr-4">
+                  <span
+                    style={{
+                      flex: 1,
+                      textAlign: "right",
+                      color: "var(--text-soft)",
+                      paddingRight: "12px",
+                    }}
+                  >
                     {typeof m.price === "number" ? m.price.toFixed(2) : "—"}
                   </span>
                   <span
-                    className="font-mono tabular text-[14px] w-20 text-right"
-                    style={colorStyle}
+                    style={{
+                      width: "80px",
+                      textAlign: "right",
+                      color,
+                    }}
                   >
-                    {pct >= 0 ? "+" : ""}
+                    {arrow} {pct >= 0 ? "+" : ""}
                     {pct.toFixed(2)}%
                   </span>
                 </button>
-                {idx < movers.length - 1 && <hr className="rule" />}
+                {idx < movers.length - 1 && (
+                  <hr
+                    style={{
+                      border: 0,
+                      borderTop: "1px solid var(--border)",
+                      margin: 0,
+                    }}
+                  />
+                )}
               </li>
             );
           })}
