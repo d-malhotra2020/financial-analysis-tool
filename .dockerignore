@@ -1,0 +1,67 @@
+# Keep the Docker build context small and pristine.
+#
+# Without this file, EVERYTHING in the repo (including venv/, node_modules,
+# .next/, the local Python virtualenv, and the cached static export) gets
+# sent to the Docker daemon as build context. That:
+#   1. Makes uploads slow.
+#   2. Lets host-compiled artifacts (macOS node_modules, macOS venv binaries)
+#      overlay into the Linux container, breaking the build at native-binding
+#      load time.
+#   3. Risks hitting Railway's build-context size cap.
+
+# Python
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local virtualenv (we install fresh from requirements.txt inside the image)
+venv/
+.venv/
+
+# Node — installed fresh by `npm ci` in the frontend-builder stage
+frontend/node_modules/
+**/node_modules/
+
+# Next.js build artifacts — regenerated inside the image
+frontend/.next/
+frontend/out/
+frontend/.turbo/
+
+# OS / editor cruft
+.DS_Store
+*.swp
+*~
+.idea/
+.vscode/
+
+# Git + CI metadata (the image doesn't need them)
+.git/
+.github/
+.gitignore
+.gitattributes
+
+# Local env files (secrets stay in Railway env vars, not baked into the image)
+.env
+.env.local
+.env.*.local
+
+# Backtest cache — regenerated on demand inside the container if needed.
+# (We keep data/calibration/latest.json — that's the published artifact.)
+data/backtest_cache/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Tests live alongside source but aren't needed at runtime
+tests/
+test_*.py
+
+# Build artifacts from prior local Docker experiments
+dist/
+build/
+*.egg-info/
