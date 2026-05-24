@@ -1,7 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { TrendingUp, TrendingDown, Activity, BarChart3, DollarSign, Building2, Gauge, Target } from "lucide-react";
 import type { StockDetail as StockDetailType } from "@/lib/types";
 
 interface Props {
@@ -23,18 +21,28 @@ function formatMarketCap(cap: number): string {
   return `$${cap.toLocaleString()}`;
 }
 
+function rsiInterpretation(rsi: number | null): string {
+  if (rsi === null || rsi === undefined) return "—";
+  if (rsi >= 70) return "Overbought";
+  if (rsi <= 30) return "Oversold";
+  return "Neutral";
+}
+
+function macdInterpretation(macd: number | null): string {
+  if (macd === null || macd === undefined) return "—";
+  if (macd > 0) return "Bullish crossover";
+  if (macd < 0) return "Bearish crossover";
+  return "Neutral";
+}
+
 export default function StockDetail({ data, loading }: Props) {
   if (loading) {
     return (
-      <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl p-6 backdrop-blur-sm">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-zinc-800 rounded-lg w-1/3" />
-          <div className="h-12 bg-zinc-800 rounded-lg w-1/2" />
-          <div className="grid grid-cols-2 gap-3">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-16 bg-zinc-800 rounded-lg" />
-            ))}
-          </div>
+      <div className="py-8">
+        <div className="space-y-4 animate-pulse">
+          <div className="h-8 bg-[var(--paper-soft)] w-1/3" />
+          <div className="h-14 bg-[var(--paper-soft)] w-1/2" />
+          <div className="h-24 bg-[var(--paper-soft)]" />
         </div>
       </div>
     );
@@ -42,10 +50,11 @@ export default function StockDetail({ data, loading }: Props) {
 
   if (!data) {
     return (
-      <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl p-8 backdrop-blur-sm flex flex-col items-center justify-center min-h-[300px]">
-        <BarChart3 className="h-12 w-12 text-zinc-600 mb-4" />
-        <p className="text-zinc-400 text-lg font-medium">Search for a stock to view details</p>
-        <p className="text-zinc-600 text-sm mt-1">150+ NYSE, NASDAQ, S&P 500 & DOW companies</p>
+      <div className="py-12">
+        <p className="font-serif text-[18px] text-[var(--ink-soft)] italic">
+          Select a ticker to view details, technical indicators, and the
+          published prediction.
+        </p>
       </div>
     );
   }
@@ -55,81 +64,195 @@ export default function StockDetail({ data, loading }: Props) {
   const dailyChange = price.close_price - price.open_price;
   const dailyChangePercent = (dailyChange / price.open_price) * 100;
   const isPositive = dailyChange >= 0;
-
-  const signalColor =
-    analysis.recommendation === "BUY"
-      ? "text-emerald-400"
-      : analysis.recommendation === "SELL"
-      ? "text-red-400"
-      : "text-amber-400";
+  const deltaColor = isPositive ? "var(--up)" : "var(--down)";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl p-6 backdrop-blur-sm"
-    >
-      <div className="flex items-start justify-between mb-6 pb-5 border-b border-zinc-800/50">
-        <div className="min-w-0 mr-4">
-          <h2 className="text-2xl font-bold text-zinc-100">{data.symbol}</h2>
-          <p className="text-sm text-zinc-400 mt-0.5 truncate">{data.name}</p>
-        </div>
-        <div className="text-right shrink-0">
-          <div className="text-3xl font-bold text-zinc-100 tabular-nums">
-            ${price.close_price.toFixed(2)}
-          </div>
-          <div
-            className={`flex items-center justify-end gap-1 text-sm font-semibold mt-1 ${
-              isPositive ? "text-emerald-400" : "text-red-400"
-            }`}
+    <div>
+      {/* Header: symbol + name + price */}
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
+        <div className="min-w-0">
+          <p className="smallcaps mb-2">Issue</p>
+          <h2
+            className="font-serif text-[var(--ink)]"
+            style={{ fontSize: "2.25rem", lineHeight: 1.05, fontWeight: 500 }}
           >
-            {isPositive ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-            <span>
-              {isPositive ? "+" : ""}
-              {dailyChange.toFixed(2)} ({isPositive ? "+" : ""}
-              {dailyChangePercent.toFixed(2)}%)
-            </span>
-          </div>
+            {data.name}
+          </h2>
+          <p className="font-mono tabular mt-2 text-[15px] text-[var(--ink-soft)]">
+            {data.symbol} · {data.exchange} · {data.sector}
+          </p>
+        </div>
+        <div className="md:text-right">
+          <p className="smallcaps mb-2">Last price</p>
+          <p
+            className="font-mono tabular"
+            style={{
+              fontSize: "3.75rem",
+              lineHeight: 1,
+              fontWeight: 500,
+              color: "var(--ink)",
+            }}
+          >
+            ${price.close_price.toFixed(2)}
+          </p>
+          <p
+            className="font-mono tabular mt-3 text-[15px]"
+            style={{ color: deltaColor }}
+          >
+            {isPositive ? "+" : ""}
+            {dailyChange.toFixed(2)} ({isPositive ? "+" : ""}
+            {dailyChangePercent.toFixed(2)}%) today
+          </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <DetailCard icon={DollarSign} label="Open" value={`$${price.open_price.toFixed(2)}`} />
-        <DetailCard icon={TrendingUp} label="High" value={`$${price.high_price.toFixed(2)}`} />
-        <DetailCard icon={TrendingDown} label="Low" value={`$${price.low_price.toFixed(2)}`} />
-        <DetailCard icon={Activity} label="Volume" value={formatVolume(price.volume)} />
-        <DetailCard icon={Building2} label="Market Cap" value={formatMarketCap(data.market_cap)} />
-        <DetailCard icon={BarChart3} label="Sector" value={data.sector} />
-        <DetailCard icon={Gauge} label="RSI" value={analysis.rsi?.toFixed(1) ?? "N/A"} />
-        <DetailCard icon={Target} label="Signal" value={analysis.recommendation} valueColor={signalColor} />
+      <hr className="rule mb-10" />
+
+      {/* Day session row */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-x-8 gap-y-6 mb-10">
+        <SessionStat label="Open" value={`$${price.open_price.toFixed(2)}`} />
+        <SessionStat label="Day high" value={`$${price.high_price.toFixed(2)}`} />
+        <SessionStat label="Day low" value={`$${price.low_price.toFixed(2)}`} />
+        <SessionStat label="Volume" value={formatVolume(price.volume)} />
+        <SessionStat label="Market cap" value={formatMarketCap(data.market_cap)} />
       </div>
-    </motion.div>
+
+      <hr className="rule mb-10" />
+
+      {/* Technical indicators — small multiples */}
+      <p className="smallcaps mb-4">Technical indicators</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border-t border-b border-[var(--rule)]">
+        <IndicatorPanel
+          label="RSI (14)"
+          value={analysis.rsi !== null ? analysis.rsi.toFixed(1) : "—"}
+          caption={rsiInterpretation(analysis.rsi)}
+          divider
+        />
+        <IndicatorPanel
+          label="MACD"
+          value={analysis.macd !== null ? analysis.macd.toFixed(3) : "—"}
+          caption={macdInterpretation(analysis.macd)}
+          divider
+        />
+        <IndicatorPanel
+          label="Volatility (σ)"
+          value={
+            analysis.volatility !== null
+              ? `${(analysis.volatility * 100).toFixed(2)}%`
+              : "—"
+          }
+          caption="Trailing 30d, annualized"
+        />
+      </div>
+
+      {/* Model output */}
+      <p className="smallcaps mt-12 mb-4">Model output — current</p>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-x-8 gap-y-4">
+        <SessionStat
+          label="1D forecast"
+          value={
+            analysis.predicted_price_1d
+              ? `$${analysis.predicted_price_1d.toFixed(2)}`
+              : "—"
+          }
+        />
+        <SessionStat
+          label="7D forecast"
+          value={
+            analysis.predicted_price_7d
+              ? `$${analysis.predicted_price_7d.toFixed(2)}`
+              : "—"
+          }
+        />
+        <SessionStat
+          label="30D forecast"
+          value={
+            analysis.predicted_price_30d
+              ? `$${analysis.predicted_price_30d.toFixed(2)}`
+              : "—"
+          }
+        />
+        <SessionStat
+          label="Signal"
+          value={analysis.recommendation ?? "—"}
+          accent={
+            analysis.recommendation === "BUY"
+              ? "var(--up)"
+              : analysis.recommendation === "SELL"
+              ? "var(--down)"
+              : undefined
+          }
+        />
+      </div>
+
+      {data.industry && (
+        <>
+          <hr className="rule mt-12 mb-6" />
+          <p className="smallcaps mb-3">About this company</p>
+          <p
+            className="font-serif text-[var(--ink)]"
+            style={{ fontSize: "17px", lineHeight: 1.55, maxWidth: "720px" }}
+          >
+            <strong>{data.name}</strong> trades on {data.exchange} under{" "}
+            <span className="font-mono">{data.symbol}</span>. It operates in the{" "}
+            <em>{data.industry}</em> industry within the{" "}
+            <em>{data.sector}</em> sector, with a market capitalization of{" "}
+            <span className="font-mono">{formatMarketCap(data.market_cap)}</span>
+            .
+          </p>
+        </>
+      )}
+    </div>
   );
 }
 
-function DetailCard({
-  icon: Icon,
+function SessionStat({
   label,
   value,
-  valueColor,
+  accent,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string;
-  valueColor?: string;
+  accent?: string;
 }) {
   return (
-    <div className="flex flex-col gap-2 p-3.5 rounded-xl bg-zinc-800/40 border border-zinc-700/30">
-      <div className="flex items-center gap-1.5">
-        <Icon className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
-        <span className="text-[11px] text-zinc-500 uppercase tracking-wider font-medium">{label}</span>
-      </div>
-      <span
-        className={`text-sm font-semibold tabular-nums leading-tight truncate ${valueColor ?? "text-zinc-100"}`}
-        title={value}
+    <div>
+      <p className="smallcaps mb-1">{label}</p>
+      <p
+        className="font-mono tabular text-[18px]"
+        style={{ color: accent ?? "var(--ink)" }}
       >
         {value}
-      </span>
+      </p>
+    </div>
+  );
+}
+
+function IndicatorPanel({
+  label,
+  value,
+  caption,
+  divider,
+}: {
+  label: string;
+  value: string;
+  caption: string;
+  divider?: boolean;
+}) {
+  return (
+    <div
+      className={`py-6 px-6 ${divider ? "md:border-r md:border-[var(--rule)]" : ""}`}
+    >
+      <p className="smallcaps mb-3">{label}</p>
+      <p
+        className="font-mono tabular"
+        style={{ fontSize: "2rem", lineHeight: 1.05, fontWeight: 500 }}
+      >
+        {value}
+      </p>
+      <p className="font-serif italic text-[14px] text-[var(--ink-soft)] mt-2">
+        {caption}
+      </p>
     </div>
   );
 }
