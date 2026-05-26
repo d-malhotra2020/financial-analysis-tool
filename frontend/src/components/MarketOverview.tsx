@@ -90,89 +90,86 @@ export default function MarketOverview({ onStockSelect }: Props) {
           background: "var(--surface)",
           border: "1px solid var(--border)",
           borderRadius: "4px",
-          padding: "32px",
+          padding: "20px",
           marginBottom: "24px",
+          minWidth: 0,
+          overflow: "hidden",
         }}
       >
         <p className="smallcaps-mono" style={{ marginBottom: "12px" }}>
           // S&P 500 · LIVE
         </p>
+        <div style={{ minWidth: 0 }}>
+          {loading ? (
+            <div
+              className="font-mono tabular"
+              style={{
+                fontSize: "clamp(28px, 6.5vw, 40px)",
+                fontWeight: 600,
+                lineHeight: 1,
+                color: "var(--text-muted)",
+              }}
+            >
+              ——
+            </div>
+          ) : (
+            <div
+              className="font-mono tabular"
+              style={{
+                fontSize: "clamp(28px, 6.5vw, 40px)",
+                fontWeight: 600,
+                lineHeight: 1,
+                color: "var(--text)",
+                letterSpacing: "-0.02em",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {sp?.value?.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }) ?? "—"}
+            </div>
+          )}
+          {sp && (
+            <p
+              className="font-mono tabular"
+              style={{
+                marginTop: "10px",
+                fontSize: "13px",
+                color: isUp ? "var(--up)" : "var(--down)",
+              }}
+            >
+              {isUp ? "▲" : "▼"} {isUp ? "+" : ""}
+              {sp.change?.toFixed(2)} ({isUp ? "+" : ""}
+              {sp.change_percent?.toFixed(2)}%)
+            </p>
+          )}
+        </div>
+
         <div
           style={{
             display: "flex",
-            alignItems: "flex-end",
-            gap: "48px",
-            flexWrap: "wrap",
+            gap: "20px",
+            borderTop: "1px solid var(--border)",
+            marginTop: "20px",
+            paddingTop: "16px",
+            minWidth: 0,
           }}
         >
-          <div>
-            {loading ? (
-              <div
-                className="font-mono tabular"
-                style={{
-                  fontSize: "56px",
-                  fontWeight: 600,
-                  lineHeight: 1,
-                  color: "var(--text-muted)",
-                }}
-              >
-                ——
-              </div>
-            ) : (
-              <div
-                className="font-mono tabular"
-                style={{
-                  fontSize: "56px",
-                  fontWeight: 600,
-                  lineHeight: 1,
-                  color: "var(--text)",
-                  letterSpacing: "-0.02em",
-                }}
-              >
-                {sp?.value?.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                }) ?? "—"}
-              </div>
-            )}
-            {sp && (
-              <p
-                className="font-mono tabular"
-                style={{
-                  marginTop: "12px",
-                  fontSize: "14px",
-                  color: isUp ? "var(--up)" : "var(--down)",
-                }}
-              >
-                {isUp ? "▲" : "▼"} {isUp ? "+" : ""}
-                {sp.change?.toFixed(2)} ({isUp ? "+" : ""}
-                {sp.change_percent?.toFixed(2)}%)
-              </p>
-            )}
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              gap: "32px",
-              borderLeft: "1px solid var(--border)",
-              paddingLeft: "32px",
-              flex: "0 0 auto",
-            }}
-          >
-            <SecondaryIndex
-              label="// DOW"
-              value={dow?.value}
-              changePct={dow?.change_percent}
-              loading={loading}
-            />
-            <SecondaryIndex
-              label="// NASDAQ"
-              value={nasdaq?.value}
-              changePct={nasdaq?.change_percent}
-              loading={loading}
-            />
-          </div>
+          <SecondaryIndex
+            label="// DOW"
+            value={dow?.value}
+            changePct={dow?.change_percent}
+            loading={loading}
+          />
+          <SecondaryIndex
+            label="// NASDAQ"
+            value={nasdaq?.value}
+            changePct={nasdaq?.change_percent}
+            loading={loading}
+          />
         </div>
       </div>
 
@@ -223,17 +220,20 @@ function SecondaryIndex({
 }) {
   const isUp = (changePct ?? 0) >= 0;
   return (
-    <div>
+    <div style={{ flex: "1 1 0", minWidth: 0 }}>
       <p className="smallcaps-mono" style={{ marginBottom: "6px" }}>
         {label}
       </p>
       <p
         className="font-mono tabular"
         style={{
-          fontSize: "22px",
+          fontSize: "20px",
           fontWeight: 500,
           lineHeight: 1.1,
           color: "var(--text)",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
         }}
       >
         {loading || value === undefined
